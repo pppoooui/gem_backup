@@ -1,0 +1,14 @@
+.next
+node_modules
+npm-debug.log*
+Dockerfile
+docker-compose.yml
+.env*
+env.production
+.DS_Store
+playwright-report
+test-results
+qa-screenshots
+docs
+supabase
+media

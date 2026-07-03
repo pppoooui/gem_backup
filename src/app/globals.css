@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --gem-ink: #002b35;
+  --gem-teal: #003f4b;
+  --gem-teal-bright: #005466;
+  --gem-gold: #c49a3a;
+  --gem-line: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+nextjs-portal {
+  display: none !important;
+}
+
+@keyframes gem-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--gem-rotate, 0deg));
+  }
+  50% {
+    transform: translate3d(var(--gem-x, 0), var(--gem-y, -14px), 0)
+      rotate(calc(var(--gem-rotate, 0deg) + var(--gem-tilt, 2deg)));
+  }
+}
+
+@keyframes gem-glint {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+    opacity: 0;
+  }
+  38% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 0.58;
+  }
+  70%,
+  100% {
+    transform: translateX(160%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-video-sweep {
+  0%,
+  22% {
+    transform: translateX(-135%) skewX(-18deg);
+    opacity: 0;
+  }
+  36% {
+    opacity: 0.54;
+  }
+  52%,
+  100% {
+    transform: translateX(145%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-video-aura {
+  0%,
+  100% {
+    opacity: 0.56;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes hero-video-sparkle {
+  0%,
+  62%,
+  100% {
+    opacity: 0;
+    transform: scale(0.45) rotate(0deg);
+  }
+  70% {
+    opacity: 0.95;
+    transform: scale(1.08) rotate(42deg);
+  }
+  78% {
+    opacity: 0.18;
+    transform: scale(0.72) rotate(82deg);
+  }
+}
+
+.gem-float {
+  animation: gem-float var(--gem-duration, 7s) ease-in-out infinite;
+  transform-origin: center;
+}
+
+.gem-glint::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% 0;
+  width: 42%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.72),
+    transparent
+  );
+  animation: gem-glint 5.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-diamond-video video {
+  transform: scale(1.025);
+  filter: saturate(1.08) contrast(1.08) brightness(1.04);
+}
+
+.hero-diamond-video {
+  isolation: isolate;
+}
+
+.hero-diamond-video::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 48% 42%, rgba(255, 255, 255, 0.22), transparent 28%),
+    radial-gradient(circle at 72% 18%, rgba(241, 196, 83, 0.18), transparent 24%),
+    radial-gradient(circle at 26% 78%, rgba(54, 236, 214, 0.16), transparent 28%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: hero-video-aura 6.8s ease-in-out infinite;
+}
+
+.hero-diamond-video::after {
+  content: "";
+  position: absolute;
+  inset: -24% auto -24% -18%;
+  z-index: 2;
+  width: 34%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.62),
+    rgba(241, 196, 83, 0.24),
+    transparent
+  );
+  filter: blur(1px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: hero-video-sweep 5.4s ease-in-out infinite;
+}
+
+.hero-video-sparkle {
+  position: absolute;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.78));
+  animation: hero-video-sparkle 4.8s ease-in-out infinite;
+}
+
+.hero-video-sparkle::before,
+.hero-video-sparkle::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, white, transparent);
+  transform: translate(-50%, -50%);
+}
+
+.hero-video-sparkle::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.hero-video-sparkle-a {
+  left: 18%;
+  top: 31%;
+}
+
+.hero-video-sparkle-b {
+  right: 18%;
+  top: 22%;
+  animation-delay: 1.35s;
+}
+
+.hero-video-sparkle-c {
+  right: 14%;
+  bottom: 18%;
+  animation-delay: 2.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gem-float,
+  .gem-glint::after,
+  .hero-diamond-video::before,
+  .hero-diamond-video::after,
+  .hero-video-sparkle {
+    animation: none;
+  }
+
+  .hero-diamond-video video {
+    animation-play-state: paused;
+  }
+}

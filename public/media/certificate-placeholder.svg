@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" fill="none">
+  <rect width="640" height="400" fill="#FAFAFA"/>
+  <rect x="48" y="40" width="544" height="320" fill="white" stroke="#E6D8C8"/>
+  <rect x="82" y="74" width="476" height="252" stroke="#B58A61" stroke-opacity=".32"/>
+  <circle cx="320" cy="148" r="28" stroke="#A97342" stroke-width="5"/>
+  <path d="M302 170v54l18-14 18 14v-54" stroke="#A97342" stroke-width="5" stroke-linejoin="round"/>
+  <text x="320" y="260" text-anchor="middle" fill="#1F1F1F" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="5">CERTIFICATE</text>
+  <text x="320" y="295" text-anchor="middle" fill="#8D8D8D" font-family="Arial, Helvetica, sans-serif" font-size="14" letter-spacing="4">UPLOAD IMAGE</text>
+</svg>
