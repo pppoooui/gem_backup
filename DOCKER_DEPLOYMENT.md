@@ -1,4 +1,4 @@
-# DFCgem Docker Deployment
+# DFC Cubic Zirconia Factory Docker Deployment
 
 Target: Singapore AWS EC2 or another Singapore VPS running Docker.
 
@@ -23,7 +23,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_PRODUCT_IMAGE_BUCKET=product-images
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
+NEXT_PUBLIC_SITE_URL=https://dfccz.top
 ```
 
 Never commit `.env.production`.
@@ -52,7 +52,7 @@ curl -I http://127.0.0.1:3002/admin/login
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
+    server_name dfccz.top www.dfccz.top;
 
     location / {
         proxy_pass http://127.0.0.1:3002;

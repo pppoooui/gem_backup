@@ -15,14 +15,17 @@
 
 import { products as staticProducts } from "@/data/products";
 import { createClient } from "@supabase/supabase-js";
+import { toPublicRoundColorlessProducts } from "@/lib/public-products";
 import type { Product } from "@/types/domain";
+
+const fallbackProducts = toPublicRoundColorlessProducts(staticProducts);
 
 async function fetchFromSupabase(): Promise<Product[]> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return staticProducts;
+    return fallbackProducts;
   }
 
   const supabase = createClient(
@@ -75,7 +78,7 @@ async function fetchFromSupabase(): Promise<Product[]> {
 
   if (error || !data) {
     console.warn("[supabase] products fetch failed, using static fallback", error?.message);
-    return staticProducts;
+    return fallbackProducts;
   }
 
   const mapped: Product[] = data
@@ -117,7 +120,8 @@ async function fetchFromSupabase(): Promise<Product[]> {
     }))
     .filter((product) => product.variants.length > 0);
 
-  return mapped.length > 0 ? mapped : staticProducts;
+  const publicProducts = toPublicRoundColorlessProducts(mapped);
+  return publicProducts.length > 0 ? publicProducts : fallbackProducts;
 }
 
 /**
@@ -132,7 +136,7 @@ export async function getPublishedProducts(): Promise<Product[]> {
     return await fetchFromSupabase();
   } catch (err) {
     console.warn("[supabase] products fetch failed, using static fallback", err);
-    return staticProducts;
+    return fallbackProducts;
   }
 }
 

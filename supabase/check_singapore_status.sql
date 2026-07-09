@@ -1,4 +1,4 @@
--- DFCgem Singapore Supabase status check
+-- DFC Cubic Zirconia Factory Singapore Supabase status check
 -- Safe to run on a fresh, partial, or complete Supabase project.
 
 create temp table if not exists dfcgem_status_check (
@@ -80,7 +80,39 @@ begin
     insert into dfcgem_status_check (section, name, value)
     select 'site_settings', key, value
     from public.site_settings
-    where key in ('business_name_en', 'business_name_zh', 'home_content_json');
+    where key in (
+      'business_name_en',
+      'business_name_zh',
+      'site_url',
+      'contact_email',
+      'home_content_json'
+    );
+  end if;
+
+  if to_regclass('public.products') is not null
+     and to_regclass('public.product_variants') is not null then
+    insert into dfcgem_status_check (section, name, value)
+    select
+      'catalog',
+      'published non-round products',
+      count(*)::text
+    from public.products
+    where status = 'published'
+      and lower(btrim(shape)) <> 'round';
+
+    insert into dfcgem_status_check (section, name, value)
+    select
+      'catalog',
+      'published products without colorless variants',
+      count(*)::text
+    from public.products as product
+    where product.status = 'published'
+      and not exists (
+        select 1
+        from public.product_variants as variant
+        where variant.product_id = product.id
+          and lower(btrim(variant.color)) = 'colorless'
+      );
   end if;
 
   if to_regclass('public.payment_methods') is not null then

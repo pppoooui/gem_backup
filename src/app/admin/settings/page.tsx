@@ -27,13 +27,13 @@ const INITIAL_SETTINGS: SiteSetting[] = [
   },
   {
     key: "business_name_en",
-    value: "DFCgem",
+    value: "DFC Cubic Zirconia Factory",
     labelEn: "Business name (EN)",
     descriptionEn: "Shown in PI / email",
   },
   {
     key: "business_name_zh",
-    value: "DFCgem",
+    value: "DFC Cubic Zirconia Factory",
     labelEn: "Business name (ZH)",
     descriptionEn: "Shown in PI / email",
   },

@@ -20,6 +20,10 @@ import { HistoryCarousel } from "@/components/home/history-carousel";
 import { HomeScrollReset } from "@/components/home/home-scroll-reset";
 import { PointerZoomImage } from "@/components/home/pointer-zoom-image";
 import { defaultHomeContent, type HomeContent } from "@/lib/home-content";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_SITE_NAME,
+} from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
 
 const copy = {
@@ -32,34 +36,35 @@ const copy = {
     contact: "Contact",
     shop: "Shop",
     language: "English",
-    heroTitle: "About DFCgem",
-    heroBody: "A precision gemstone supplier combining development, production, wholesale and dependable global fulfillment.",
-    company: "DFCgem Precision Gemstone Co., Ltd.",
-    introTitle: "Precision stones. Dependable supply.",
-    introBodyOne: "DFCgem supplies precision-cut cubic zirconia for jewelry manufacturers, wholesalers and repeat B2B buyers. Our range covers calibrated round stones, fancy cuts and production-ready parcels with consistent color, grade and measurement.",
-    introBodyTwo: "From sample approval to bulk packing, every order follows a clear process. Flexible MOQ, tier pricing, custom labels and proforma invoice support make international replenishment straightforward.",
-    founded: "PRECISION SUPPLY BEGINS",
+    heroTitle: "About DFC Cubic Zirconia Factory",
+    heroBody: "20 years. Real quality. Real partner.",
+    heroSupporting: "Vivid Fire CZ, Upgrade Your Designs",
+    company: "DFC Cubic Zirconia Factory",
+    introTitle: "Hearts and Arrows CZ, made for lasting brilliance.",
+    introBodyOne: "DFC Cubic Zirconia Factory is a professional manufacturer dedicated to Hearts and Arrows (H&A) cubic zirconia in all standard and custom sizes. With over 20 years of focused expertise, we specialize in 5A-grade CZ that delivers exceptional brilliance, fire, and light performance—designed to elevate your jewelry collections and boost product value.",
+    introBodyTwo: "At DFC, we don’t just supply gemstones—we deliver value, trust, and long-term partnership to make your jewelry shine brighter.",
+    founded: "20 YEARS OF FOCUSED EXPERTISE",
     factoryTitle: "Factory introduction",
-    factoryBody: "Our production workflow brings calibrated sizing, optical inspection, batch grading and packing together. Every parcel follows repeatable checks so manufacturers can replenish with confidence.",
+    factoryBody: "Our precision-cut Hearts and Arrows zirconia ensures perfect symmetry, consistent quality, and outstanding sparkle for rings, earrings, necklaces, and fine fashion jewelry. For more than two decades, we have grown alongside global jewelry brands and manufacturers, providing reliable supply, stable quality, and tailored solutions that help our partners scale and succeed.",
     recognitionTitle: "Industry recognition",
     recognitionBody: "Quality systems, supplier audits and consistent batch control support our commitment to dependable wholesale supply.",
     recognitionSub: "CERTIFICATIONS · QUALITY RECORDS",
     testimonialsTitle: "Customer feedback",
     testimonialsBody: "Repeat buyers value consistent sizes, clear packing and responsive quotation support.",
-    bannerTitle: "DFCgem",
-    bannerBody: "Precision-cut cubic zirconia, calibrated parcels and dependable B2B fulfillment for jewelry manufacturers worldwide.",
+    bannerTitle: "20 years strong. Always in stock.",
+    bannerBody: "Vivid Fire CZ, Upgrade Your Designs",
     bannerCta: "Explore the collection",
-    footerAbout: "About DFCgem",
+    footerAbout: "About DFC Cubic Zirconia Factory",
     footerProduct: "Collections",
     footerService: "Services",
     footerContact: "Contact",
     footerAboutLinks: ["Company profile", "Our journey", "Factory", "Quality records"],
-    footerProductLinks: ["Best sellers", "Round stones", "Fancy cuts", "Calibrated parcels"],
+    footerProductLinks: ["Best sellers", "Round stones", "Colorless CZ", "Calibrated parcels"],
     footerServiceLinks: ["Wholesale supply", "Custom packing", "Shipping", "Payment"],
     subscribe: "Subscribe",
     subscribeHint: "Receive new product and wholesale updates.",
     emailPlaceholder: "Enter your email",
-    copyright: "DFCgem. All rights reserved.",
+    copyright: "DFC Cubic Zirconia Factory. All rights reserved.",
   },
   zh: {
     home: "首页",
@@ -70,34 +75,35 @@ const copy = {
     contact: "联系我们",
     shop: "商城",
     language: "简体中文",
-    heroTitle: "关于 DFCgem",
-    heroBody: "集研发、生产、批发与全球履约于一体的高精度宝石供应商。",
-    company: "DFCgem 精密宝石有限公司",
-    introTitle: "精准宝石，稳定供应",
-    introBodyOne: "DFCgem 为珠宝制造商、批发商和长期 B2B 买家供应精密切割立方氧化锆。产品涵盖校准圆石、异形切工及可直接投产的批量包货，尺寸、颜色与等级稳定一致。",
-    introBodyTwo: "从样品确认到批量包装，每张订单都遵循清晰流程。灵活起订量、阶梯价格、定制标签和形式发票支持，让国际补货更加简单。",
-    founded: "精密宝石供应起步",
+    heroTitle: "关于 DFC Cubic Zirconia Factory",
+    heroBody: "20年，真品质，真伙伴",
+    heroSupporting: "饱满火彩锆石，升级首饰款式质感",
+    company: "DFC Cubic Zirconia Factory",
+    introTitle: "专注八心八箭圆形白色锆石",
+    introBodyOne: "DFC 锆石工厂是一家专业生产商，专注生产全常规尺寸及定制尺寸的八心八箭立方氧化锆石。我们拥有二十余年深耕行业的专业经验，主打 5A 级锆石，宝石拥有绝佳亮度、强火彩与出色的透光效果，专为提升您的首饰系列质感、拉高产品附加值而生。",
+    introBodyTwo: "在 DFC，我们不止是宝石供应商，更为客户带去实实在在的价值、可靠的信任与长期共赢的合作，让您的首饰绽放更耀眼的光彩。",
+    founded: "二十余年专注锆石制造",
     factoryTitle: "工厂介绍",
-    factoryBody: "生产流程整合尺寸校准、光学检测、批次分级与包装。每一批产品都经过可重复的质量检查，让珠宝制造商能够放心补货。",
+    factoryBody: "我们采用精密切割工艺打造八心八箭锆石，对称度完美、品质稳定，闪耀度出众，适用于戒指、耳饰、项链及各类时尚精品首饰。二十多年来，我们与全球各大首饰品牌、加工厂共同发展，提供稳定供货、恒定品质与定制化配套方案，助力合作客户拓展业务、发展壮大。",
     recognitionTitle: "行业认可",
     recognitionBody: "通过质量体系、供应商审核与稳定的批次管控，持续兑现可靠批发供应的承诺。",
     recognitionSub: "行业认证 · 品质记录",
     testimonialsTitle: "客户评价",
     testimonialsBody: "长期客户重视稳定尺寸、清晰包装与及时报价支持。",
-    bannerTitle: "DFCgem",
-    bannerBody: "为全球珠宝制造商提供精密切割立方氧化锆、校准包货与可靠的 B2B 履约服务。",
+    bannerTitle: "二十年实力，库存永远在线",
+    bannerBody: "饱满火彩锆石，升级首饰款式质感",
     bannerCta: "查看产品系列",
-    footerAbout: "关于 DFCgem",
+    footerAbout: "关于 DFC Cubic Zirconia Factory",
     footerProduct: "产品系列",
     footerService: "服务",
     footerContact: "联系我们",
     footerAboutLinks: ["企业简介", "发展历程", "工厂介绍", "品质记录"],
-    footerProductLinks: ["热销产品", "圆形宝石", "异形切工", "校准包货"],
+    footerProductLinks: ["热销产品", "圆形宝石", "白色锆石", "校准包货"],
     footerServiceLinks: ["批发供应", "定制包装", "运输说明", "付款方式"],
     subscribe: "订阅",
     subscribeHint: "接收新品与批发资讯。",
     emailPlaceholder: "输入您的邮箱",
-    copyright: "DFCgem 版权所有。",
+    copyright: "DFC Cubic Zirconia Factory 版权所有。",
   },
 } satisfies Record<Locale, Record<string, string | string[]>>;
 
@@ -108,7 +114,9 @@ function Brand({ light = false }: { light?: boolean }) {
         <Gem className={`size-5 ${light ? "text-white" : "text-[#9a6a3a]"}`} />
         <span className="text-[22px] font-semibold tracking-[0.16em]">DFC</span>
       </span>
-      <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.34em]">gem</span>
+      <span className="mt-1 text-[8px] font-medium uppercase tracking-[0.12em] sm:text-[9px]">
+        Cubic Zirconia Factory
+      </span>
     </span>
   );
 }
@@ -126,7 +134,7 @@ function Header({ locale }: { locale: Locale }) {
             <span key={index} className="grid size-8 place-items-center rounded-full border border-black/75"><Icon className="size-3.5" /></span>
           ))}
         </div>
-        <Link href={base} aria-label="DFCgem home" className="justify-self-center"><Brand /></Link>
+        <Link href={base} aria-label={`${PUBLIC_SITE_NAME} home`} className="justify-self-center"><Brand /></Link>
         <div className="flex items-center justify-end gap-4 text-sm">
           <Link href={`${base}/products`} aria-label="Search products" className="hidden sm:block"><Search className="size-5" /></Link>
           <details className="group relative">
@@ -181,7 +189,8 @@ export function HomeExperience({
         <div className="absolute inset-0 bg-black/28" />
         <div className="relative mx-auto flex min-h-[290px] max-w-5xl flex-col items-center justify-center px-6 text-center text-white sm:min-h-[330px]">
           <h1 className="text-3xl font-semibold sm:text-4xl">{t.heroTitle}</h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-white/82 sm:text-base">{t.heroBody}</p>
+          <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-white/92 sm:text-base">{t.heroBody}</p>
+          <p className="mt-1 max-w-3xl text-sm leading-7 text-white/78">{t.heroSupporting}</p>
         </div>
       </section>
 
@@ -189,16 +198,16 @@ export function HomeExperience({
 
       <section id="about" className="mx-auto grid max-w-[1320px] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-18">
         <div className="relative flex min-h-[480px] flex-col overflow-hidden">
-          <p className="text-sm font-medium uppercase tracking-[0.24em]">DFCgem</p>
+          <p className="text-sm font-medium uppercase tracking-[0.12em]">{PUBLIC_SITE_NAME}</p>
           <h2 className="mt-5 max-w-md text-3xl font-semibold leading-tight">{t.company}</h2>
           <span className="pointer-events-none absolute inset-x-0 bottom-2 text-[210px] font-light leading-none text-[#9a6a3a]/5 sm:text-[260px]">D</span>
           <div className="mt-auto pb-3">
-            <p className="text-[86px] font-light leading-none text-[#b58a61]/24 sm:text-[128px]">2019</p>
+            <p className="text-[86px] font-light leading-none text-[#b58a61]/24 sm:text-[128px]">20+</p>
             <p className="mt-2 text-xs uppercase tracking-[0.28em] text-[#9a6a3a]">{t.founded}</p>
           </div>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a6a3a]">DFCgem</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a6a3a]">{PUBLIC_SITE_NAME}</p>
           <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">{t.introTitle}</h2>
           <p className="mt-6 text-[15px] leading-8 text-black/68">{t.introBodyOne}</p>
           <p className="mt-5 text-[15px] leading-8 text-black/68">{t.introBodyTwo}</p>
@@ -211,8 +220,6 @@ export function HomeExperience({
         </div>
       </section>
 
-      <HistoryCarousel locale={locale} milestones={content.milestones} />
-
       <section id="factory" className="py-14 sm:py-18">
         <div className="mx-auto max-w-[1840px] px-5 sm:px-8">
           <div className="mx-auto max-w-4xl text-center">
@@ -224,6 +231,8 @@ export function HomeExperience({
           </div>
         </div>
       </section>
+
+      <HistoryCarousel locale={locale} milestones={content.milestones} />
 
       <section id="recognition" className="bg-[#fafafa] py-14 sm:py-18">
         <div className="mx-auto max-w-[1840px] px-5 sm:px-8">
@@ -280,7 +289,7 @@ export function HomeExperience({
       </section>
 
       <section id="brand-banner" className="relative min-h-[360px] overflow-hidden text-white">
-        <Image src="/media/dfcgem-hero.png" alt="DFCgem gemstone collection" fill className="object-cover" sizes="100vw" />
+        <Image src="/media/dfcgem-hero.png" alt="Round colorless cubic zirconia collection" fill className="object-cover" sizes="100vw" />
         <div className="absolute inset-0 bg-black/62" />
         <div className="relative mx-auto flex min-h-[360px] max-w-4xl flex-col items-center justify-center px-5 text-center sm:px-8">
           <h2 className="text-3xl font-semibold sm:text-4xl">{t.bannerTitle}</h2>
@@ -304,7 +313,7 @@ function Footer({ locale }: { locale: Locale }) {
         <FooterList title={t.footerAbout} items={t.footerAboutLinks as string[]} />
         <FooterList title={t.footerProduct} items={t.footerProductLinks as string[]} />
         <FooterList title={t.footerService} items={t.footerServiceLinks as string[]} />
-        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><p className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />sales@dfcgem.com</p><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />Singapore · Global fulfillment</p></div>
+        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />Singapore · Global fulfillment</p></div>
         <div><h3 className="text-sm font-semibold">{t.subscribe}</h3><p className="mt-4 text-sm text-black/48">{t.subscribeHint}</p><form className="mt-5 flex border border-black/18"><input type="email" aria-label={t.emailPlaceholder} placeholder={t.emailPlaceholder} className="min-w-0 flex-1 px-4 py-3 text-sm outline-none" /><button type="submit" className="bg-[#a97342] px-5 text-sm text-white">{t.subscribe}</button></form></div>
       </div>
       <div className="mx-auto flex max-w-[1320px] flex-col gap-3 pt-6 text-xs text-black/38 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} {t.copyright}</p><Link href={`${base}/products`}>Wholesale CZ · Global fulfillment</Link></div>

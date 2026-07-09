@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Mail, MessageCircle } from "lucide-react";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_SITE_NAME,
+} from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
 
 export const metadata: Metadata = {
-  title: "Contact Us | DFCgem",
+  title: `Contact Us | ${PUBLIC_SITE_NAME}`,
   description:
-    "Get in touch with DFCgem for wholesale gemstone inquiries, orders, and support.",
+    `Get in touch with ${PUBLIC_SITE_NAME} for wholesale CZ inquiries, orders, and support.`,
 };
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -56,7 +60,7 @@ export default async function ContactPage({ params }: Props) {
             ) : null}
 
             <a
-              href="mailto:sales@dfcgem.com"
+              href={`mailto:${PUBLIC_CONTACT_EMAIL}`}
               className="flex items-center gap-4 rounded-lg border border-slate-200 p-5 hover:bg-slate-50 transition-colors"
             >
               <div className="grid size-12 shrink-0 place-items-center rounded-full bg-sky-100">
@@ -64,7 +68,7 @@ export default async function ContactPage({ params }: Props) {
               </div>
               <div>
                 <p className="font-semibold">Email</p>
-                <p className="text-sm text-slate-500">sales@dfcgem.com</p>
+                <p className="text-sm text-slate-500">{PUBLIC_CONTACT_EMAIL}</p>
                 <p className="text-xs text-slate-400 mt-0.5">For PI requests, invoices, and formal documentation</p>
               </div>
             </a>

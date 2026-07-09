@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Clock, Globe, Package, Plane, Shield, Ship } from "lucide-react";
+import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
 
 export const metadata: Metadata = {
-  title: "Shipping & Logistics | DFCgem",
+  title: `Shipping & Logistics | ${PUBLIC_SITE_NAME}`,
   description:
     "International shipping options, delivery timelines, and packaging information for wholesale gemstone orders.",
 };

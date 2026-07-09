@@ -121,7 +121,9 @@ test.describe("Site smoke tests", () => {
   test("admin login page loads", async ({ page }) => {
     await page.goto("/admin/login");
     await expect(
-      page.getByRole("heading", { name: "DFCgem 后台" }),
+      page.getByRole("heading", {
+        name: "DFC Cubic Zirconia Factory 后台",
+      }),
     ).toBeVisible();
   });
 

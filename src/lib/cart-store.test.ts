@@ -8,7 +8,7 @@ describe("deserializeCartLines", () => {
       { productId: "prod-round-125", variantId: "round-125-1000", quantity: 2000 },
       { productId: "prod-round-150", variantId: "round-150-1000", quantity: 3000 },
       { productId: "prod-round-200", variantId: "round-200-1000", quantity: 3000 },
-      { productId: "prod-princess-250", variantId: "princess-250-1000", quantity: 3000 },
+      { productId: "prod-round-250", variantId: "round-250-1000", quantity: 3000 },
     ];
 
     expect(deserializeCartLines(JSON.stringify(legacyCart))).toEqual([]);

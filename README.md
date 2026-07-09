@@ -1,6 +1,6 @@
-# DFCgem
+# DFC Cubic Zirconia Factory
 
-DFCgem is a bilingual B2B cubic-zirconia catalog and quote-order application.
+DFC Cubic Zirconia Factory is a bilingual B2B cubic-zirconia catalog and quote-order application.
 It uses Next.js, TypeScript, Supabase, and Vercel, with token-protected customer
 order pages and an authenticated operations dashboard.
 
@@ -44,4 +44,4 @@ or staging database.
 
 Deploy the app to Vercel in Singapore and set the production environment there.
 Use Cloudflare for DNS/CDN. Keep Supabase in Singapore and apply every migration,
-including `0007_production_hardening.sql`, before accepting live orders.
+including `0010_dfc_content_refresh.sql`, before accepting live orders.

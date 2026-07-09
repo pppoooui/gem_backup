@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { products } from "@/data/products";
 import { getProductBySlug } from "@/lib/products-supabase";
+import { PUBLIC_SITE_NAME, SITE_URL } from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
 import ProductDetailPage from "./[slug].client";
 
 const locales = ["en", "zh"];
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dfcgem.com";
 export const revalidate = 60;
 
 export function generateStaticParams() {
@@ -35,19 +35,19 @@ export async function generateMetadata({
   const minPrice = baseVariant?.priceTiers?.[0]?.priceUsd ?? 0;
 
   return {
-    title: `${name} | CZ Wholesale — DFCgem`,
+    title: `${name} | ${PUBLIC_SITE_NAME}`,
     description: `B2B ${name} — ${product.shape} ${product.material} ${product.grade} grade. MOQ from ${baseVariant?.moq ?? 0} pcs. Factory-direct pricing.`,
     alternates: {
-      canonical: `${BASE_URL}/${locale}/products/${slug}`,
+      canonical: `${SITE_URL}/${locale}/products/${slug}`,
       languages: {
-        en: `${BASE_URL}/en/products/${slug}`,
-        zh: `${BASE_URL}/zh/products/${slug}`,
+        en: `${SITE_URL}/en/products/${slug}`,
+        zh: `${SITE_URL}/zh/products/${slug}`,
       },
     },
     openGraph: {
       title: `${name} — CZ Wholesale`,
       description: `MOQ ${baseVariant?.moq ?? 0} pcs · from US$ ${minPrice.toFixed(3)}/pc`,
-      url: `${BASE_URL}/${locale}/products/${slug}`,
+      url: `${SITE_URL}/${locale}/products/${slug}`,
       images: [product.imagePath],
     },
   };

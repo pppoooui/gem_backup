@@ -9,12 +9,12 @@ import {
 
 it("uses the requested nine milestone years in ascending order", () => {
   expect(historyYears).toEqual([
-    "1990",
     "1995",
     "2000",
     "2005",
     "2010",
     "2015",
+    "2018",
     "2020",
     "2025",
     "2026",

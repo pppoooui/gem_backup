@@ -8,10 +8,11 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
+import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
 
 export const metadata: Metadata = {
-  title: "Payment Methods | DFCgem",
+  title: `Payment Methods | ${PUBLIC_SITE_NAME}`,
   description:
     "Secure international payment options for wholesale gemstone orders including XTransfer, WorldFirst, Airwallex, Wise, and bank transfer.",
 };

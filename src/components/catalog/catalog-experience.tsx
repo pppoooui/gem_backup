@@ -22,6 +22,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import { usdInrRate } from "@/data/products";
 import { clearCart, getCartLines, setCartLines } from "@/lib/cart-store";
 import type {
@@ -140,23 +141,10 @@ const trustItems = [
 
 const shapeFilters = [
   ["Round", "2,450"],
-  ["Princess", "1,280"],
-  ["Cushion", "980"],
-  ["Oval", "1,120"],
-  ["Pear", "1,050"],
 ] as const;
 
 const colors = [
   "#f8fafc",
-  "#d6d7d8",
-  "#efd55f",
-  "#d6b06d",
-  "#efafd0",
-  "#9f74d8",
-  "#b51f2e",
-  "#3151d3",
-  "#079455",
-  "#09090b",
 ];
 
 function lineProduct(line: CartLine, products: Product[]) {
@@ -289,7 +277,7 @@ export function CatalogExperience({
             href={`/${locale}`}
             className="shrink-0 text-2xl font-bold tracking-tight text-[#002b35]"
           >
-            DFCgem
+            {PUBLIC_SITE_NAME}
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
             <button className="inline-flex items-center gap-1.5">

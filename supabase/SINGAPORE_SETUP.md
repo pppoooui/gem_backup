@@ -1,4 +1,4 @@
-# DFCgem Singapore Supabase Setup
+# DFC Cubic Zirconia Factory Singapore Supabase Setup
 
 ## 1. First Check
 
@@ -23,6 +23,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 7. `supabase/migrations/0007_production_hardening.sql`
 8. `supabase/migrations/0008_storage_and_home_content.sql`
 9. `supabase/migrations/0009_reseed_order_number_sequence.sql`
+10. `supabase/migrations/0010_dfc_content_refresh.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -40,9 +41,11 @@ Run these in order instead:
 6. `supabase/migrations/0007_production_hardening.sql`
 7. `supabase/migrations/0008_storage_and_home_content.sql`
 8. `supabase/migrations/0009_reseed_order_number_sequence.sql`
+9. `supabase/migrations/0010_dfc_content_refresh.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
+`0010_dfc_content_refresh.sql` applies the approved homepage defaults, provisional domain/contact details, and limits public product reads to round colorless CZ without deleting order history. Run it once for this release; rerun it only when you intentionally want to restore these approved homepage defaults, because it resets `home_content_json`.
 
 ## 4. Final Check
 
@@ -60,6 +63,9 @@ Expected important values:
 - `has_order_number_seq = true`
 - `storage.buckets` has `product-images`
 - `site_settings` has `home_content_json`
+- `business_name_en = DFC Cubic Zirconia Factory`
+- `site_url = https://dfccz.top`
+- no published non-round product or publicly readable colored variant
 
 ## 5. Admin User
 

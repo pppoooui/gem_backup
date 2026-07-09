@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
     <main className="grid min-h-screen place-items-center bg-[#f7f9fa] px-4">
       <section className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
         <h1 className="text-2xl font-semibold text-[#002b35]">
-          DFCgem 后台
+          DFC Cubic Zirconia Factory 后台
         </h1>
         <p className="mt-2 text-sm text-slate-500">
           请使用管理员账号登录。
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="admin@dfcgem.com"
+              placeholder="admin@dfccz.top"
               required
             />
           </label>
@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
         </form>
 
         <p className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-500">
-          仅限 DFCgem 内部运营人员使用。
+          仅限 DFC Cubic Zirconia Factory 内部运营人员使用。
         </p>
       </section>
     </main>

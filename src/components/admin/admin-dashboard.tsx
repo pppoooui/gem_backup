@@ -17,6 +17,7 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
+import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import { QRCodeSVG } from "qrcode.react";
 import type { AdminOrder, PaymentMethod } from "@/types/domain";
 import { cn } from "@/lib/utils";
@@ -58,7 +59,7 @@ export function AdminDashboard({
       {/* Fixed sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white xl:block">
         <div className="flex h-16 items-center border-b border-slate-100 px-6">
-          <span className="text-xl font-bold text-[#002b35]">DFCgem</span>
+          <span className="text-base font-bold text-[#002b35]">{PUBLIC_SITE_NAME}</span>
         </div>
         <nav className="space-y-1 p-4 text-sm font-medium">
           {NAV_LINKS.map(({ icon: Icon, label, href }) => (

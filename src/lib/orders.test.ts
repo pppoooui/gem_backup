@@ -32,8 +32,8 @@ const checkoutInput: CheckoutOrderInput = {
       quantity: 2000,
     },
     {
-      productId: "prod-princess-250",
-      variantId: "princess-250-1000",
+      productId: "prod-round-250",
+      variantId: "round-250-1000",
       quantity: 500,
     },
   ],

@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_SITE_NAME,
+  SITE_URL,
+} from "@/lib/site-config";
 import { serializeJsonLd } from "@/lib/utils";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dfcgem.com";
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "DFCgem | Precision CZ Wholesale Supplier",
+  title: `${PUBLIC_SITE_NAME} | Hearts and Arrows CZ`,
   description:
-    "B2B cubic zirconia wholesale catalog for India buyers with MOQ, tier prices, quote orders, and manual payment confirmation.",
+    "20 years of Hearts and Arrows cubic zirconia manufacturing, with round colorless CZ in standard and custom sizes.",
   openGraph: {
-    title: "DFCgem | Precision CZ Wholesale Supplier",
+    title: `${PUBLIC_SITE_NAME} | Hearts and Arrows CZ`,
     description:
-      "B2B cubic zirconia wholesale catalog for India buyers with MOQ, tier prices, quote orders, and manual payment confirmation.",
+      "20 years of Hearts and Arrows cubic zirconia manufacturing, with round colorless CZ in standard and custom sizes.",
     url: SITE_URL,
-    siteName: "DFCgem",
+    siteName: PUBLIC_SITE_NAME,
   },
 };
 
@@ -32,13 +35,15 @@ export default function RootLayout({
             __html: serializeJsonLd({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "DFCgem",
+              name: PUBLIC_SITE_NAME,
               url: SITE_URL,
               description:
-                "B2B cubic zirconia wholesale supplier. Factory-direct CZ stones for jewelry manufacturers.",
+                "Hearts and Arrows cubic zirconia factory specializing in round colorless 5A CZ.",
+              email: PUBLIC_CONTACT_EMAIL,
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "sales",
+                email: PUBLIC_CONTACT_EMAIL,
                 availableLanguage: ["English", "Chinese"],
               },
             }),

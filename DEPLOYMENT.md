@@ -1,4 +1,4 @@
-# DFCgem Production Checklist
+# DFC Cubic Zirconia Factory Production Checklist
 
 ## Supabase
 
@@ -6,7 +6,7 @@
 - Enable Data API.
 - Disable automatic exposure of new tables.
 - Enable automatic RLS for new public tables.
-- Run `supabase/migrations/0001_*.sql` through `0007_*.sql` in order.
+- Run `supabase/migrations/0001_*.sql` through `0010_*.sql` in order.
 - Confirm `anon` can select published products, variants, price tiers, enabled
   payment methods, categories, exchange rates, and public site settings only.
 - Confirm `anon` cannot insert customers, orders, order items, or payment records.

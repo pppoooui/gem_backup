@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
+import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import type { LucideIcon } from "lucide-react";
 import { usdInrRate } from "@/data/products";
 import { getPersistedOrderByToken } from "@/lib/orders";
@@ -137,7 +138,7 @@ export default async function OrderPage({
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
           <Link href={`/${locale}`} className="text-2xl font-bold text-[#002b35]">
-            DFCgem
+            {PUBLIC_SITE_NAME}
           </Link>
           <Link
             href={
