@@ -9,7 +9,7 @@ const packageLock = JSON.parse(
 );
 
 describe("Linux Docker native dependencies", () => {
-  it("locks the Lightning CSS binary required by Alpine x64 builds", () => {
+  it("locks the native binaries required by Alpine x64 builds", () => {
     expect(
       packageJson.optionalDependencies?.["lightningcss-linux-x64-musl"],
     ).toBe("1.32.0");
@@ -17,6 +17,22 @@ describe("Linux Docker native dependencies", () => {
       packageLock.packages["node_modules/lightningcss-linux-x64-musl"],
     ).toMatchObject({
       version: "1.32.0",
+      optional: true,
+      os: ["linux"],
+      cpu: ["x64"],
+      libc: ["musl"],
+    });
+    expect(
+      packageJson.optionalDependencies?.[
+        "@tailwindcss/oxide-linux-x64-musl"
+      ],
+    ).toBe("4.3.0");
+    expect(
+      packageLock.packages[
+        "node_modules/@tailwindcss/oxide-linux-x64-musl"
+      ],
+    ).toMatchObject({
+      version: "4.3.0",
       optional: true,
       os: ["linux"],
       cpu: ["x64"],
