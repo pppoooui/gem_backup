@@ -227,10 +227,10 @@ export function HomeExperience({
             <h2 className="text-3xl font-semibold sm:text-4xl">{t.factoryTitle}</h2>
             <p className="mt-5 text-sm leading-7 text-black/50">{t.factoryBody}</p>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <FactoryVideoGrid locale={locale} />
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {content.factoryImages.slice(0, 3).map((image) => <div key={image.src} className="relative aspect-[16/9] overflow-hidden"><Image src={image.src} alt={locale === "zh" ? image.zh : image.en} fill className="object-cover transition duration-700 hover:scale-105" sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" /></div>)}
           </div>
-          <FactoryVideoGrid locale={locale} />
         </div>
       </section>
 

@@ -34,14 +34,14 @@ export function FactoryVideoGrid({ locale }: { locale: Locale }) {
   }, []);
 
   return (
-    <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {factoryVideos.map((video, index) => (
-        <div key={video.src} className="aspect-video overflow-hidden xl:aspect-[4/3]">
+        <div key={video.src} className="aspect-[320/243] overflow-hidden xl:aspect-[80/81]">
           <video
             ref={(element) => {
               videoRefs.current[index] = element;
             }}
-            className="size-full object-cover"
+            className="size-full object-cover object-center"
             autoPlay
             loop
             muted
