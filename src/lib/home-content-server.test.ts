@@ -41,9 +41,6 @@ describe("mergeHomeContent", () => {
       "/media/dfc-hearts-arrows-comparison.png",
       "/products/round-parcel.png",
       "/products/round-sizes.png",
-      "/media/dfc-factory-stock.jpeg",
-      "/media/dfc-factory-sorting.jpeg",
-      "/media/dfc-cz-stock.jpeg",
     ]);
     expect(defaultHomeContent.testimonials.some(
       (item) => item.nameEn.includes("Vietnam"),
