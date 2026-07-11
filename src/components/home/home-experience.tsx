@@ -19,6 +19,7 @@ import {
 import { HistoryCarousel } from "@/components/home/history-carousel";
 import { HomeScrollReset } from "@/components/home/home-scroll-reset";
 import { PointerZoomImage } from "@/components/home/pointer-zoom-image";
+import { factoryVideos } from "@/lib/factory-videos";
 import { defaultHomeContent, type HomeContent } from "@/lib/home-content";
 import {
   PUBLIC_CONTACT_EMAIL,
@@ -228,6 +229,24 @@ export function HomeExperience({
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {content.factoryImages.map((image) => <div key={image.src} className="relative aspect-[16/9] overflow-hidden bg-[#f2f1ef]"><Image src={image.src} alt={locale === "zh" ? image.zh : image.en} fill className="object-cover transition duration-700 hover:scale-105" sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" /></div>)}
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {factoryVideos.map((video) => (
+              <div key={video.src} className="h-[520px] overflow-hidden bg-black sm:h-[640px] xl:h-[720px]">
+                <video
+                  className="size-full object-contain"
+                  controls
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  title={locale === "zh" ? video.titleZh : video.titleEn}
+                >
+                  <source src={video.src} type="video/mp4" />
+                </video>
+              </div>
+            ))}
           </div>
         </div>
       </section>

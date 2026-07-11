@@ -37,13 +37,14 @@ describe("mergeHomeContent", () => {
     expect(defaultHomeContent.aboutImage.src).toBe(
       "/media/dfc-hearts-arrows.png",
     );
-    expect(defaultHomeContent.factoryImages.map((image) => image.src)).toEqual(
-      expect.arrayContaining([
-        "/media/dfc-factory-stock.jpeg",
-        "/media/dfc-factory-sorting.jpeg",
-        "/media/dfc-cz-stock.jpeg",
-      ]),
-    );
+    expect(defaultHomeContent.factoryImages.map((image) => image.src)).toEqual([
+      "/media/dfc-hearts-arrows-comparison.png",
+      "/products/round-parcel.png",
+      "/products/round-sizes.png",
+      "/media/dfc-factory-stock.jpeg",
+      "/media/dfc-factory-sorting.jpeg",
+      "/media/dfc-cz-stock.jpeg",
+    ]);
     expect(defaultHomeContent.testimonials.some(
       (item) => item.nameEn.includes("Vietnam"),
     )).toBe(true);
