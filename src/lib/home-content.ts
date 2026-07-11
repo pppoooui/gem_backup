@@ -54,9 +54,9 @@ export const defaultHomeContent: HomeContent = {
     { year: "2026", image: "/media/dfc-cz-stock.jpeg", titleEn: "Capacity expansion", titleZh: "产能与库存升级", bodyEn: "Expanded round colorless CZ capacity supports repeat wholesale orders worldwide.", bodyZh: "扩充圆形白色锆石产能与库存，为全球长期批发订单提供支持。" },
   ],
   factoryImages: [
-    { src: "/media/dfc-hearts-arrows-comparison.png", en: "Round CZ cutting and symmetry comparison", zh: "圆形锆石切工与对称度对比" },
-    { src: "/products/round-parcel.png", en: "Colorless batch sorting and packing", zh: "白色锆石批次分选与包装" },
-    { src: "/products/round-sizes.png", en: "Calibrated round size reference", zh: "圆形锆石校准尺寸参照" },
+    { src: "/media/dfc-factory-stock.jpeg", en: "Organized stock for stable wholesale supply", zh: "稳定批发供应的分类库存" },
+    { src: "/media/dfc-factory-sorting.jpeg", en: "Factory sorting and quality inspection", zh: "工厂分选与品质检查" },
+    { src: "/media/dfc-cz-stock.jpeg", en: "Round colorless cubic zirconia inventory", zh: "圆形白色锆石库存" },
   ],
   certificates: [
     { image: "", code: "ISO 9001", labelEn: "Quality Management", labelZh: "质量管理体系" },
