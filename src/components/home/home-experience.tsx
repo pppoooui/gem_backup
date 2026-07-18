@@ -20,7 +20,9 @@ import { HistoryCarousel } from "@/components/home/history-carousel";
 import { FactoryVideoGrid } from "@/components/home/factory-video-grid";
 import { HomeScrollReset } from "@/components/home/home-scroll-reset";
 import { PointerZoomImage } from "@/components/home/pointer-zoom-image";
+import { StorefrontContactWidget } from "@/components/storefront/storefront-contact-widget";
 import { defaultHomeContent, type HomeContent } from "@/lib/home-content";
+import type { StorefrontSettings } from "@/lib/storefront-settings";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_SITE_NAME,
@@ -122,7 +124,7 @@ function Brand({ light = false }: { light?: boolean }) {
   );
 }
 
-function Header({ locale }: { locale: Locale }) {
+function Header({ locale, showHistory }: { locale: Locale; showHistory: boolean }) {
   const t = copy[locale];
   const base = `/${locale}`;
   const languageSwitchLabel = locale === "en" ? "中文" : "English";
@@ -154,14 +156,14 @@ function Header({ locale }: { locale: Locale }) {
       </div>
       <nav className="border-t border-black/5 px-5 sm:px-8">
         <div className="mx-auto hidden h-[54px] max-w-4xl items-center justify-between text-[15px] md:flex">
-          <Link href={base}>{t.home}</Link><Link href="#about" className="text-[#9a6a3a]">{t.about}</Link><Link href={`${base}/products`} className="inline-flex items-center gap-1">{t.collections}<ChevronDown className="size-3.5" /></Link><Link href="#history">{t.story}</Link><Link href="#factory">{t.service}</Link><Link href={`${base}/contact`}>{t.contact}</Link><Link href={`${base}/products`}>{t.shop}</Link>
+          <Link href={base}>{t.home}</Link><Link href="#about" className="text-[#9a6a3a]">{t.about}</Link><Link href={`${base}/products`} className="inline-flex items-center gap-1">{t.collections}<ChevronDown className="size-3.5" /></Link>{showHistory ? <Link href="#history">{t.story}</Link> : null}<Link href="#factory">{t.service}</Link><Link href={`${base}/contact`}>{t.contact}</Link><Link href={`${base}/products`}>{t.shop}</Link>
         </div>
         <div className="flex h-12 items-center justify-between md:hidden">
           <span className="text-sm font-medium">{t.home}</span>
           <details className="group relative">
             <summary aria-label="Menu" className="grid size-9 list-none cursor-pointer place-items-center [&::-webkit-details-marker]:hidden"><Menu className="size-5" /></summary>
             <div className="absolute right-0 top-10 z-30 min-w-48 border border-black/10 bg-white py-2 shadow-xl">
-              {[[t.about, "#about"], [t.story, "#history"], [t.service, "#factory"], [t.collections, `${base}/products`], [t.contact, `${base}/contact`]].map(([label, href]) => <Link key={label} href={href} className="block px-5 py-3 text-sm hover:bg-[#f7f6f4]">{label}</Link>)}
+              {[[t.about, "#about"], ...(showHistory ? [[t.story, "#history"]] : []), [t.service, "#factory"], [t.collections, `${base}/products`], [t.contact, `${base}/contact`]].map(([label, href]) => <Link key={label} href={href} className="block px-5 py-3 text-sm hover:bg-[#f7f6f4]">{label}</Link>)}
             </div>
           </details>
         </div>
@@ -173,9 +175,11 @@ function Header({ locale }: { locale: Locale }) {
 export function HomeExperience({
   locale,
   content = defaultHomeContent,
+  storefrontSettings,
 }: {
   locale: Locale;
   content?: HomeContent;
+  storefrontSettings: StorefrontSettings;
 }) {
   const t = copy[locale];
   const base = `/${locale}`;
@@ -183,7 +187,7 @@ export function HomeExperience({
   return (
     <main id="top" className="min-h-screen bg-white text-[#171717]">
       <HomeScrollReset />
-      <Header locale={locale} />
+      <Header locale={locale} showHistory={storefrontSettings.showHistory} />
 
       <section className="relative min-h-[290px] overflow-hidden sm:min-h-[330px]">
         <Image src="/media/dfcgem-hero.png" alt="Precision cut stones and pendant" fill priority loading="eager" fetchPriority="high" className="object-cover" sizes="100vw" />
@@ -234,9 +238,9 @@ export function HomeExperience({
         </div>
       </section>
 
-      <HistoryCarousel locale={locale} milestones={content.milestones} />
+      {storefrontSettings.showHistory ? <HistoryCarousel locale={locale} milestones={content.milestones} /> : null}
 
-      <section id="recognition" className="bg-[#fafafa] py-14 sm:py-18">
+      {storefrontSettings.showRecognition ? <section id="recognition" className="bg-[#fafafa] py-14 sm:py-18">
         <div className="mx-auto max-w-[1840px] px-5 sm:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-semibold sm:text-4xl">{t.recognitionTitle}</h2>
@@ -266,7 +270,7 @@ export function HomeExperience({
             ))}
           </div>
         </div>
-      </section>
+      </section> : null}
 
       <section id="testimonials" className="bg-white py-14 sm:py-18">
         <div className="mx-auto max-w-[1840px] px-5 sm:px-8">
@@ -301,6 +305,7 @@ export function HomeExperience({
       </section>
 
       <Footer locale={locale} />
+      <StorefrontContactWidget locale={locale} whatsappNumber={storefrontSettings.whatsappNumber} />
     </main>
   );
 }

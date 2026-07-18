@@ -8,42 +8,20 @@ test.describe("Site smoke tests", () => {
 
   test("products listing renders in English", async ({ page }) => {
     await page.goto("/en/products");
-    // Filters heading is hidden on mobile (lg:block only), use Sort visible on all widths
     await expect(page.getByText("Sort by")).toBeVisible();
-    // product cards should exist
     const cards = page.locator("article");
     await expect(cards.first()).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('a[href="/en/cart"] span').first()).toHaveText("0");
+    await expect(page.locator('a[href="/en/cart"]')).toHaveCount(0);
+    await expect(page.getByText("Request quote").first()).toBeVisible();
+    await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
   });
 
-  test("restoring a saved cart does not cause hydration errors", async ({ page }) => {
+  test("hidden homepage sections and inquiry window behave as expected", async ({ page }) => {
     await page.goto("/en");
-    await page.evaluate(() => {
-      localStorage.setItem(
-        "upgrade-gem-cart",
-        JSON.stringify([
-          {
-            productId: "prod-round-1",
-            variantId: "round-1-1000",
-            quantity: 500,
-          },
-        ]),
-      );
-    });
-
-    const hydrationErrors: string[] = [];
-    page.on("console", (message) => {
-      if (message.type() === "error") hydrationErrors.push(message.text());
-    });
-    page.on("pageerror", (error) => hydrationErrors.push(error.message));
-
-    await page.goto("/en/products");
-    await expect(page.locator('a[href="/en/cart"] span').first()).toHaveText("1");
-    expect(
-      hydrationErrors.filter((message) =>
-        message.toLowerCase().includes("hydration"),
-      ),
-    ).toEqual([]);
+    await expect(page.getByRole("heading", { name: "Our journey" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Industry recognition" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Send inquiry" }).click();
+    await expect(page.getByRole("heading", { name: "Request a quote" })).toBeVisible();
   });
 
   test("product detail page loads", async ({ page }) => {
@@ -53,54 +31,40 @@ test.describe("Site smoke tests", () => {
     });
   });
 
-  test("product detail add-to-cart opens a populated cart", async ({ page }) => {
+  test("product detail hides public prices and points buyers to inquiry", async ({ page }) => {
     await page.goto("/en/products/round-brilliant-cut-1mm");
-    await page.getByRole("button", { name: "Add to Cart" }).click();
-    await expect(page).toHaveURL(/\/en\/cart$/);
-    await expect(page.getByText("Round Brilliant Cut").first()).toBeVisible();
-    await expect(page.getByRole("link", { name: "Proceed to Checkout" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Request quote" })).toBeVisible();
+    await expect(page.getByText("Price Tiers")).toHaveCount(0);
+    await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
   });
 
-  test("cart page loads", async ({ page }) => {
+  test("cart and checkout routes are unavailable while pricing is hidden", async ({ page }) => {
     await page.goto("/en/cart");
-    await expect(page.locator("text=Cart")).toBeVisible();
-  });
-
-  test("checkout page loads", async ({ page }) => {
+    await expect(page).toHaveURL(/\/en\/products$/);
     await page.goto("/en/checkout");
-    // Even without cart items it should render without crashing
-    await expect(page.locator("text=Your cart is empty")).toBeVisible();
+    await expect(page).toHaveURL(/\/en\/products$/);
   });
 
-  test("checkout creates a token order that appears in admin", async ({ page }) => {
-    const companyName = `E2E Gems ${Date.now()}`;
+  test("inquiry form submits a validated request", async ({ page }) => {
+    await page.route("**/api/inquiries", async (route) => {
+      expect(route.request().method()).toBe("POST");
+      const body = route.request().postDataJSON();
+      expect(body.quantity).toBe("5000");
+      expect(body.sizeMm).toBe("5 mm");
+      expect(body.grade).toBe("5A");
+      await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ received: true, id: "test-inquiry" }) });
+    });
 
-    await page.goto("/en/products/round-brilliant-cut-1mm");
-    await page.getByRole("button", { name: "Add to Cart" }).click();
-    await page.getByRole("link", { name: "Proceed to Checkout" }).click();
-
-    await page.getByLabel("Company Name").fill(companyName);
-    await page.getByLabel("Contact Person").fill("Aarav Test");
-    await page.getByLabel("WhatsApp").fill("+91 90000 11111");
-    await page.getByLabel("Email").fill("aarav.test@example.com");
-    await page.getByLabel("Country").fill("United Kingdom");
-    await page.getByLabel("City").fill("London");
-    await page.getByLabel("PIN Code").fill("SW1A 1AA");
-    await page.getByLabel("Shipping Address").fill("10 Test Street, London");
-    await page.locator("select").selectOption("xtransfer");
-
-    await Promise.all([
-      page.waitForURL(/\/en\/order\/GEM-\d{8}-\d{4}\?token=.+/),
-      page.getByRole("button", { name: "Place Order" }).click(),
-    ]);
-    await expect(page.getByRole("heading", { name: "Order received" })).toBeVisible();
-
-    const orderNo = page.url().match(/order\/(GEM-\d{8}-\d{4})/)?.[1];
-    expect(orderNo).toBeTruthy();
-
-    await page.goto("/admin");
-    await expect(page.getByText(companyName).first()).toBeVisible();
-    await expect(page.getByText(orderNo!).first()).toBeVisible();
+    await page.goto("/en#inquiry");
+    const inquiryDialog = page.getByRole("dialog");
+    await expect(inquiryDialog.getByRole("heading", { name: "Request a quote" })).toBeVisible();
+    await inquiryDialog.getByLabel("Quantity (pcs)").fill("5000");
+    await inquiryDialog.getByLabel("Size").selectOption("5 mm");
+    await inquiryDialog.getByLabel("Grade").selectOption("5A");
+    await inquiryDialog.getByLabel("Email").fill("buyer@example.com");
+    await inquiryDialog.getByLabel("WhatsApp").fill("+86 138 0000 0000");
+    await inquiryDialog.getByRole("button", { name: "Send inquiry" }).click();
+    await expect(inquiryDialog.getByText("Thank you. Your inquiry has been sent.")).toBeVisible();
   });
 
   test("contact page loads", async ({ page }) => {
@@ -147,10 +111,18 @@ test.describe("Site smoke tests", () => {
     await page.goto("/admin/settings");
     await expect(page.getByRole("heading", { name: "系统设置" })).toBeVisible();
 
-    await page.locator("input").nth(1).fill("150");
+    const historyToggle = page.getByRole("switch", { name: "显示发展历程" });
+    await expect(historyToggle).toHaveAttribute("aria-checked", "false");
+    await historyToggle.click();
+    await expect(historyToggle).toHaveAttribute("aria-checked", "true");
     await page.getByRole("button", { name: "保存全部" }).click();
 
     await expect(page.getByText(/设置已/)).toBeVisible();
+  });
+
+  test("admin inquiries page is available", async ({ page }) => {
+    await page.goto("/admin/inquiries");
+    await expect(page.getByRole("heading", { name: "客户询盘" })).toBeVisible();
   });
 
   test("/api/health returns ok", async ({ request }) => {

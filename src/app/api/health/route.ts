@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { usdInrRate } from "@/data/products";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { getPublishedProducts } from "@/lib/products-supabase";
+import { getStorefrontSettings } from "@/lib/storefront-settings";
 
 async function checkSupabaseConnectivity(): Promise<{
   status: "ok" | "warn" | "error";
@@ -68,19 +69,22 @@ async function checkProductImageBucket(): Promise<{
 }
 
 export async function GET() {
-  const waConfigured = Boolean(
-    (process.env.WHATSAPP_CLOUD_API_PHONE_NUMBER_ID &&
-      process.env.WHATSAPP_CLOUD_API_TOKEN &&
-      process.env.WHATSAPP_VENDOR_PHONE_NUMBER) ||
-      process.env.WHATSAPP_NOTIFY_WEBHOOK_URL,
-  );
-
-  const supabaseCheck = await checkSupabaseConnectivity();
-  const [enabledPaymentMethods, publishedProducts, storageCheck] = await Promise.all([
+  const [storefrontSettings, supabaseCheck, enabledPaymentMethods, publishedProducts, storageCheck] = await Promise.all([
+    getStorefrontSettings(),
+    checkSupabaseConnectivity(),
     getEnabledPaymentMethods(),
     getPublishedProducts(),
     checkProductImageBucket(),
   ]);
+  const directWhatsAppNumber = storefrontSettings.whatsappNumber.replace(/\D/g, "");
+  const directLinkConfigured = directWhatsAppNumber.length >= 7 && directWhatsAppNumber.length <= 15;
+  const waConfigured = Boolean(
+    directLinkConfigured ||
+      (process.env.WHATSAPP_CLOUD_API_PHONE_NUMBER_ID &&
+        process.env.WHATSAPP_CLOUD_API_TOKEN &&
+        process.env.WHATSAPP_VENDOR_PHONE_NUMBER) ||
+      process.env.WHATSAPP_NOTIFY_WEBHOOK_URL,
+  );
 
   const checks = {
     homepage: { status: "ok", path: "/en" },
@@ -93,6 +97,7 @@ export async function GET() {
     whatsapp: {
       status: waConfigured ? "ok" : "warn",
       configured: waConfigured,
+      directLinkConfigured,
     },
     exchangeRate: {
       status: usdInrRate > 0 ? "ok" : "error",

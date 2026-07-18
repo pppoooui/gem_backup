@@ -24,6 +24,7 @@ const copy = {
     quoteOnly: "Quote batch",
     moq: "MOQ",
     addToCart: "Add to Cart",
+    requestQuote: "Request quote",
     description: "Description",
     specifications: "Specifications",
     shape: "Shape",
@@ -52,6 +53,7 @@ const copy = {
     quoteOnly: "确认批次",
     moq: "起订量",
     addToCart: "加入购物车",
+    requestQuote: "提交询盘",
     description: "商品描述",
     specifications: "规格参数",
     shape: "形状",
@@ -101,9 +103,13 @@ const trustItems = [
 export default function ProductDetailPage({
   locale,
   product,
+  showProductDetails,
+  showPrices,
 }: {
   locale: Locale;
   product: Product;
+  showProductDetails: boolean;
+  showPrices: boolean;
 }) {
   const router = useRouter();
   const t = copy[locale];
@@ -189,10 +195,9 @@ export default function ProductDetailPage({
                 <h2 className="text-2xl font-bold text-slate-950">
                   {locale === "en" ? activeProduct.nameEn : activeProduct.nameZh}
                 </h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  {selectedVariant.sizeMm} | {activeProduct.grade} |{" "}
-                  {selectedVariant.color}
-                </p>
+                {showProductDetails ? <p className="mt-2 text-sm text-slate-500">
+                  1-12 mm | 3A / 5A | {selectedVariant.color}
+                </p> : null}
               </div>
               <span
                 className={cn(
@@ -205,8 +210,7 @@ export default function ProductDetailPage({
               </span>
             </div>
 
-            {/* Price Tiers */}
-            <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-5">
+            {showPrices ? <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold text-slate-900">
                 {t.priceTiers}
               </h3>
@@ -232,10 +236,10 @@ export default function ProductDetailPage({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> : null}
 
             {/* Variant Selector */}
-            {activeProduct.variants.length > 1 && (
+            {showProductDetails && activeProduct.variants.length > 1 && (
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-slate-900">
                   {t.size}
@@ -260,7 +264,7 @@ export default function ProductDetailPage({
             )}
 
             {/* Specs */}
-            <div className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-5">
+            {showProductDetails ? <div className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-5">
               <SpecItem label={t.shape} value={activeProduct.shape} />
               <SpecItem
                 label={t.color}
@@ -268,9 +272,9 @@ export default function ProductDetailPage({
               />
               <SpecItem
                 label={t.size}
-                value={selectedVariant.sizeMm}
+                value="1-12 mm"
               />
-              <SpecItem label={t.grade} value={activeProduct.grade} />
+              <SpecItem label={t.grade} value="3A / 5A" />
               <SpecItem label={t.cut} value={activeProduct.cut} />
               <SpecItem
                 label={t.clarity}
@@ -281,21 +285,26 @@ export default function ProductDetailPage({
                 value={activeProduct.material}
               />
               <SpecItem label={t.sku} value={activeProduct.sku} />
-            </div>
+            </div> : null}
 
             {/* Action */}
             <div className="mt-6 flex items-center gap-4">
-              <div className="text-sm text-slate-600">
+              {showProductDetails ? <div className="text-sm text-slate-600">
                 <span className="font-medium">{t.moq}:</span>{" "}
                 {selectedVariant.moq.toLocaleString()} pcs
-              </div>
-              <button
+              </div> : null}
+              {showPrices ? <button
                 type="button"
                 onClick={addSelectedVariantToCart}
                 className="ml-auto inline-flex h-12 items-center rounded-md bg-[#003f4b] px-6 text-sm font-semibold text-white transition hover:bg-[#005466]"
               >
                 {t.addToCart}
-              </button>
+              </button> : <Link
+                href={`/${locale}#inquiry`}
+                className="ml-auto inline-flex h-12 items-center bg-[#003f4b] px-6 text-sm font-semibold text-white transition hover:bg-[#005466]"
+              >
+                {t.requestQuote}
+              </Link>}
             </div>
           </div>
         </div>
@@ -311,17 +320,21 @@ export default function ProductDetailPage({
               image: activeProduct.imagePath,
               description: `Cubic Zirconia ${activeProduct.shape} ${activeProduct.grade} grade, factory-direct wholesale.`,
               sku: activeProduct.sku,
-              offers: {
-                "@type": "AggregateOffer",
-                lowPrice: Math.min(
-                  ...selectedVariant.priceTiers.map((tier) => tier.priceUsd),
-                ),
-                highPrice: Math.max(
-                  ...selectedVariant.priceTiers.map((tier) => tier.priceUsd),
-                ),
-                priceCurrency: "USD",
-                offerCount: activeProduct.variants.length,
-              },
+              ...(showPrices
+                ? {
+                    offers: {
+                      "@type": "AggregateOffer",
+                      lowPrice: Math.min(
+                        ...selectedVariant.priceTiers.map((tier) => tier.priceUsd),
+                      ),
+                      highPrice: Math.max(
+                        ...selectedVariant.priceTiers.map((tier) => tier.priceUsd),
+                      ),
+                      priceCurrency: "USD",
+                      offerCount: activeProduct.variants.length,
+                    },
+                  }
+                : {}),
             }),
           }}
         />

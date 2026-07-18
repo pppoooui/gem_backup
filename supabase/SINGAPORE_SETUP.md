@@ -24,6 +24,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 8. `supabase/migrations/0008_storage_and_home_content.sql`
 9. `supabase/migrations/0009_reseed_order_number_sequence.sql`
 10. `supabase/migrations/0010_dfc_content_refresh.sql`
+11. `supabase/migrations/0011_storefront_controls_and_inquiries.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -42,10 +43,12 @@ Run these in order instead:
 7. `supabase/migrations/0008_storage_and_home_content.sql`
 8. `supabase/migrations/0009_reseed_order_number_sequence.sql`
 9. `supabase/migrations/0010_dfc_content_refresh.sql`
+10. `supabase/migrations/0011_storefront_controls_and_inquiries.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
 `0010_dfc_content_refresh.sql` applies the approved homepage defaults, provisional domain/contact details, and limits public product reads to round colorless CZ without deleting order history. Run it once for this release; rerun it only when you intentionally want to restore these approved homepage defaults, because it resets `home_content_json`.
+`0011_storefront_controls_and_inquiries.sql` defaults the Journey, Industry recognition, product details, and public prices to hidden. It also creates the protected customer inquiry inbox used by the homepage form. Run it once for this release.
 
 ## 4. Final Check
 
@@ -58,6 +61,7 @@ Expected important values:
 - `has_admin_users = true`
 - `has_site_settings = true`
 - `has_product_image_assets = true`
+- `has_inquiries = true`
 - `has_admin_rls_function = true`
 - `has_next_order_number = true`
 - `has_order_number_seq = true`
@@ -66,6 +70,7 @@ Expected important values:
 - `business_name_en = DFC Cubic Zirconia Factory`
 - `site_url = https://dfccz.top`
 - no published non-round product or publicly readable colored variant
+- `home_show_history = false`, `home_show_recognition = false`, `catalog_show_product_details = false`, and `catalog_show_prices = false`
 
 ## 5. Admin User
 

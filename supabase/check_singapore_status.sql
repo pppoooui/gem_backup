@@ -35,6 +35,11 @@ values
     'tables',
     'product_image_assets',
     (to_regclass('public.product_image_assets') is not null)::text
+  ),
+  (
+    'tables',
+    'inquiries',
+    (to_regclass('public.inquiries') is not null)::text
   );
 
 insert into dfcgem_status_check (section, name, value)
@@ -85,7 +90,11 @@ begin
       'business_name_zh',
       'site_url',
       'contact_email',
-      'home_content_json'
+      'home_content_json',
+      'home_show_history',
+      'home_show_recognition',
+      'catalog_show_product_details',
+      'catalog_show_prices'
     );
   end if;
 

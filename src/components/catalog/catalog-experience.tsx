@@ -193,18 +193,22 @@ export function CatalogExperience({
   products,
   paymentMethods,
   whatsappNumber,
+  showProductDetails,
+  showPrices,
 }: {
   locale: Locale;
   products: Product[];
   paymentMethods: PaymentMethod[];
   whatsappNumber?: string;
+  showProductDetails: boolean;
+  showPrices: boolean;
 }) {
   const t = copy[locale];
   const pathname = usePathname();
   const [cart, setCart] = useState<CartLine[]>([]);
   const [isCartHydrated, setIsCartHydrated] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [isCartPanelOpen, setIsCartPanelOpen] = useState(true);
+  const [isCartPanelOpen, setIsCartPanelOpen] = useState(showPrices);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- restore browser storage after hydration
@@ -267,7 +271,7 @@ export function CatalogExperience({
     /^\/(en|zh)(?=\/|$)/,
     `/${alternateLocale}`,
   );
-  const cartHref = `/${locale}/cart`;
+  const inquiryHref = `/${locale}#inquiry`;
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
@@ -313,8 +317,8 @@ export function CatalogExperience({
               <MessageCircle className="size-5 text-emerald-600" />
               <span className="hidden sm:inline">WhatsApp</span>
             </Link>
-            <Link
-              href={cartHref}
+            {showPrices ? <Link
+              href={`/${locale}/cart`}
               className="relative inline-flex items-center gap-1.5"
             >
               <ShoppingCart className="size-6" />
@@ -322,7 +326,7 @@ export function CatalogExperience({
                 {cart.length}
               </span>
               <span className="hidden sm:inline">{t.cart}</span>
-            </Link>
+            </Link> : null}
           </div>
         </div>
         <div className="hidden border-t border-slate-100 md:grid md:grid-cols-4">
@@ -341,8 +345,8 @@ export function CatalogExperience({
         </div>
       </header>
 
-      <main className="grid lg:grid-cols-[242px_minmax(0,1fr)_312px]">
-        <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
+      <main className={cn("grid", showPrices ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]" : "lg:grid-cols-[242px_minmax(0,1fr)]")}>
+        {showProductDetails ? <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-7">
             <h2 className="text-xl font-semibold">{t.filters}</h2>
             <button className="text-xs font-medium text-[#005466]">
@@ -395,12 +399,12 @@ export function CatalogExperience({
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <input
                   className="h-9 rounded-md border border-slate-200 px-3 text-sm"
-                  defaultValue="0.80"
+                  defaultValue="1"
                 />
                 <span className="text-xs text-slate-500">to</span>
                 <input
                   className="h-9 rounded-md border border-slate-200 px-3 text-sm"
-                  defaultValue="10.00"
+                  defaultValue="12"
                 />
               </div>
               <div className="mt-4 h-1.5 rounded-full bg-slate-200">
@@ -409,7 +413,7 @@ export function CatalogExperience({
             </FilterGroup>
 
             <FilterGroup title={t.grade}>
-              {["5A", "3A", "2A"].map((grade, index) => (
+              {["5A", "3A"].map((grade, index) => (
                 <label key={grade} className="mt-3 flex items-center gap-2 text-sm">
                   <span
                     className={cn(
@@ -424,7 +428,7 @@ export function CatalogExperience({
               ))}
             </FilterGroup>
           </div>
-        </aside>
+        </aside> : null}
 
         <section className="min-w-0 bg-[#fbfcfc] px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -465,8 +469,8 @@ export function CatalogExperience({
             </div>
           </div>
 
-          <div className="mb-7 flex flex-wrap gap-3">
-            {["Shape: Round", "Color: Colorless", "Size: 1.00 - 3.00 mm", "Grade: 5A"].map(
+          {showProductDetails ? <div className="mb-7 flex flex-wrap gap-3">
+            {["Shape: Round", "Color: Colorless", "Size: 1 - 12 mm", "Grade: 3A / 5A"].map(
               (item) => (
                 <button
                   key={item}
@@ -478,7 +482,7 @@ export function CatalogExperience({
               ),
             )}
             <button className="text-sm font-medium text-[#005466]">{t.clear}</button>
-          </div>
+          </div> : null}
 
           <div
             className={cn(
@@ -494,13 +498,16 @@ export function CatalogExperience({
                 product={product}
                 locale={locale}
                 priority={index < 3}
-                onAdd={() => addProduct(product)}
+                showProductDetails={showProductDetails}
+                showPrices={showPrices}
+                inquiryHref={inquiryHref}
+                onAdd={showPrices ? () => addProduct(product) : undefined}
               />
             ))}
           </div>
         </section>
 
-        {isCartPanelOpen ? (
+        {showPrices && isCartPanelOpen ? (
           <aside className="border-l border-slate-200 bg-white">
             <CartPanel
               cart={cart}
@@ -542,12 +549,18 @@ function ProductCard({
   product,
   locale,
   priority,
+  showProductDetails,
+  showPrices,
+  inquiryHref,
   onAdd,
 }: {
   product: Product;
   locale: Locale;
   priority?: boolean;
-  onAdd: () => void;
+  showProductDetails: boolean;
+  showPrices: boolean;
+  inquiryHref: string;
+  onAdd?: () => void;
 }) {
   const t = copy[locale];
   const variant = product.variants[0];
@@ -569,7 +582,7 @@ function ProductCard({
   }, [isAdded]);
 
   function handleAdd() {
-    onAdd();
+    onAdd?.();
     setIsAdded(true);
   }
 
@@ -613,15 +626,15 @@ function ProductCard({
         <h3 className="font-semibold text-slate-950">
           {locale === "en" ? product.nameEn : product.nameZh}
         </h3>
-        <p className="mt-1 text-sm text-slate-500">
-          {variant.sizeMm} | {product.grade} | {variant.color}
-        </p>
-        <div className="mt-4 border-t border-slate-100 pt-3">
+        {showProductDetails ? <p className="mt-1 text-sm text-slate-500">
+          1-12 mm | 3A / 5A | {variant.color}
+        </p> : null}
+        {showProductDetails ? <div className="mt-4 border-t border-slate-100 pt-3">
           <div className="mb-2 flex justify-between text-sm text-slate-500">
             <span>{t.moq}</span>
             <span>{variant.moq.toLocaleString()} pcs</span>
           </div>
-          <div className="space-y-2">
+          {showPrices ? <div className="space-y-2">
             {variant.priceTiers.map((tier) => (
               <div
                 key={tier.label}
@@ -639,10 +652,10 @@ function ProductCard({
                 </span>
               </div>
             ))}
-          </div>
-        </div>
+          </div> : null}
+        </div> : null}
         <div className="mt-5 flex items-center justify-between gap-3">
-          <span
+          {showProductDetails ? <span
             className={cn(
               "inline-flex items-center gap-1.5 text-sm",
               variant.stockStatus === "low_stock"
@@ -652,8 +665,8 @@ function ProductCard({
           >
             <span className="size-2 rounded-full bg-current" />
             {statusText}
-          </span>
-          <button
+          </span> : <span />}
+          {showPrices ? <button
             className={cn(
               "inline-flex h-10 min-w-20 items-center justify-center gap-1.5 rounded-md px-5 text-sm font-semibold text-white transition",
               isAdded
@@ -665,7 +678,12 @@ function ProductCard({
           >
             {isAdded ? <Check className="size-4" /> : null}
             {isAdded ? t.added : t.add}
-          </button>
+          </button> : <Link
+            href={inquiryHref}
+            className="inline-flex h-10 min-w-28 items-center justify-center bg-[#003f4b] px-4 text-sm font-semibold text-white transition hover:bg-[#005466]"
+          >
+            {locale === "zh" ? "提交询盘" : "Request quote"}
+          </Link>}
         </div>
       </div>
     </article>

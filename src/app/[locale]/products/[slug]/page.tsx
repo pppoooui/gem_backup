@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { products } from "@/data/products";
 import { getProductBySlug } from "@/lib/products-supabase";
 import { PUBLIC_SITE_NAME, SITE_URL } from "@/lib/site-config";
+import { getStorefrontSettings } from "@/lib/storefront-settings";
 import type { Locale } from "@/types/domain";
 import ProductDetailPage from "./[slug].client";
 
 const locales = ["en", "zh"];
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return products.flatMap((product) =>
@@ -31,12 +32,9 @@ export async function generateMetadata({
   }
 
   const name = locale === "zh" ? product.nameZh : product.nameEn;
-  const baseVariant = product.variants[0];
-  const minPrice = baseVariant?.priceTiers?.[0]?.priceUsd ?? 0;
-
   return {
     title: `${name} | ${PUBLIC_SITE_NAME}`,
-    description: `B2B ${name} — ${product.shape} ${product.material} ${product.grade} grade. MOQ from ${baseVariant?.moq ?? 0} pcs. Factory-direct pricing.`,
+    description: `B2B ${name} from DFC Cubic Zirconia Factory. Request a quotation for 1-12 mm, 3A and 5A requirements.`,
     alternates: {
       canonical: `${SITE_URL}/${locale}/products/${slug}`,
       languages: {
@@ -46,7 +44,7 @@ export async function generateMetadata({
     },
     openGraph: {
       title: `${name} — CZ Wholesale`,
-      description: `MOQ ${baseVariant?.moq ?? 0} pcs · from US$ ${minPrice.toFixed(3)}/pc`,
+      description: `Wholesale cubic zirconia. Request a quotation for your quantity and specification.`,
       url: `${SITE_URL}/${locale}/products/${slug}`,
       images: [product.imagePath],
     },
@@ -64,5 +62,6 @@ export default async function ProductRoute({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  return <ProductDetailPage locale={locale as Locale} product={product} />;
+  const storefrontSettings = await getStorefrontSettings();
+  return <ProductDetailPage locale={locale as Locale} product={product} showProductDetails={storefrontSettings.showProductDetails} showPrices={storefrontSettings.showPrices} />;
 }

@@ -1,45 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
-
-const fallbackSettings = [
-  {
-    key: "whatsapp_number",
-    value: "+91 ",
-    labelEn: "WhatsApp number",
-    descriptionEn: "Used for pre-filled customer messages",
-  },
-  {
-    key: "min_order_amount_usd",
-    value: "100",
-    labelEn: "Minimum order (USD)",
-    descriptionEn: "Orders below this are rejected",
-  },
-  {
-    key: "business_name_en",
-    value: "DFC Cubic Zirconia Factory",
-    labelEn: "Business name (EN)",
-    descriptionEn: "Shown in PI / email",
-  },
-  {
-    key: "business_name_zh",
-    value: "DFC Cubic Zirconia Factory",
-    labelEn: "Business name (ZH)",
-    descriptionEn: "Shown in PI / email",
-  },
-  {
-    key: "default_currency",
-    value: "USD",
-    labelEn: "Default currency",
-    descriptionEn: "USD for all quotes",
-  },
-  {
-    key: "reference_currency",
-    value: "INR",
-    labelEn: "Reference currency",
-    descriptionEn: "INR for on-page estimates",
-  },
-];
+import {
+  managedSiteSettings,
+  mergeManagedSiteSettings,
+} from "@/lib/site-settings";
 
 const settingSchema = z.object({
   key: z.string().trim().min(1),
@@ -69,7 +35,7 @@ export async function GET() {
     const supabase = createSupabaseAdminClient();
     if (!supabase) {
       return NextResponse.json({
-        settings: fallbackSettings,
+        settings: managedSiteSettings,
         mode: "fallback",
       });
     }
@@ -82,13 +48,14 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json({
-      settings:
+      settings: mergeManagedSiteSettings(
         data?.map((item) => ({
           key: item.key,
           value: item.value,
           labelEn: item.label_en ?? item.key,
           descriptionEn: item.description_en ?? "",
-        })) ?? fallbackSettings,
+        })) ?? [],
+      ),
       mode: "supabase",
     });
   } catch (error) {
@@ -121,6 +88,8 @@ export async function POST(request: Request) {
     );
 
     if (error) throw error;
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       saved: settings.length,

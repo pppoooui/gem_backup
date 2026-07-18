@@ -6,9 +6,10 @@
 - Enable Data API.
 - Disable automatic exposure of new tables.
 - Enable automatic RLS for new public tables.
-- Run `supabase/migrations/0001_*.sql` through `0010_*.sql` in order.
-- Confirm `anon` can select published products, variants, price tiers, enabled
-  payment methods, categories, exchange rates, and public site settings only.
+- Run `supabase/migrations/0001_*.sql` through `0011_*.sql` in order.
+- Confirm `anon` can select published products, variants, enabled payment methods,
+  categories, exchange rates, and public site settings only. Public price tiers
+  remain inaccessible while `catalog_show_prices` is false.
 - Confirm `anon` cannot insert customers, orders, order items, or payment records.
 - Create staff users in Supabase Authentication, then add matching UUID rows to
   `public.admin_users`. Do not place the service-role key in browser code.
@@ -36,5 +37,6 @@
 - Update status, shipping fee, discount, and payment provider.
 - Confirm an invalid order token returns no customer data.
 - Confirm WhatsApp links are hidden until a real vendor number is configured.
+- Submit one homepage inquiry and confirm it appears at `/admin/inquiries`.
 - Replace provisional certificates, company facts, and contact copy with verified
   business information before public promotion.

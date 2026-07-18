@@ -115,7 +115,6 @@ async function fetchFromSupabase(): Promise<Product[]> {
             .filter((tier) => Number.isFinite(tier.minQuantity) && Number.isFinite(tier.priceUsd))
             .sort((a, b) => a.minQuantity - b.minQuantity),
         }))
-        .filter((variant) => variant.priceTiers.length > 0)
         .sort((a, b) => a.sizeMm.localeCompare(b.sizeMm, undefined, { numeric: true })),
     }))
     .filter((product) => product.variants.length > 0);

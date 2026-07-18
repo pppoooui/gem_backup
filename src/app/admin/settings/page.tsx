@@ -3,58 +3,33 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Settings, Wrench } from "lucide-react";
+import { managedSiteSettings, type ManagedSiteSetting } from "@/lib/site-settings";
 import { cn } from "@/lib/utils";
 
-type SiteSetting = {
-  key: string;
-  value: string;
-  labelEn: string;
-  descriptionEn?: string;
-};
+type SiteSetting = ManagedSiteSetting;
 
-const INITIAL_SETTINGS: SiteSetting[] = [
-  {
-    key: "whatsapp_number",
-    value: "+91 ",
-    labelEn: "WhatsApp number",
-    descriptionEn: "Used for pre-filled customer messages",
-  },
-  {
-    key: "min_order_amount_usd",
-    value: "100",
-    labelEn: "Minimum order (USD)",
-    descriptionEn: "Orders below this are rejected",
-  },
-  {
-    key: "business_name_en",
-    value: "DFC Cubic Zirconia Factory",
-    labelEn: "Business name (EN)",
-    descriptionEn: "Shown in PI / email",
-  },
-  {
-    key: "business_name_zh",
-    value: "DFC Cubic Zirconia Factory",
-    labelEn: "Business name (ZH)",
-    descriptionEn: "Shown in PI / email",
-  },
-  {
-    key: "default_currency",
-    value: "USD",
-    labelEn: "Default currency",
-    descriptionEn: "USD for all quotes",
-  },
-  {
-    key: "reference_currency",
-    value: "INR",
-    labelEn: "Reference currency",
-    descriptionEn: "INR for on-page estimates",
-  },
-];
+const INITIAL_SETTINGS: SiteSetting[] = managedSiteSettings;
 
 const SETTING_COPY: Record<string, { label: string; description: string }> = {
   whatsapp_number: {
     label: "WhatsApp 号码",
-    description: "用于生成客户预填消息",
+    description: "用于首页直达 WhatsApp 按钮；请填写含国家码的真实号码，例如 +8613800000000",
+  },
+  home_show_history: {
+    label: "显示发展历程",
+    description: "默认隐藏；打开后在首页展示 Our journey。",
+  },
+  home_show_recognition: {
+    label: "显示行业认可",
+    description: "默认隐藏；打开后在首页展示认证与品质记录。",
+  },
+  catalog_show_product_details: {
+    label: "显示商品规格",
+    description: "默认隐藏；打开后显示 1-12 mm、3A / 5A 等规格信息。",
+  },
+  catalog_show_prices: {
+    label: "显示商品价格与购物车",
+    description: "默认隐藏；打开后才会公开价格并恢复购物车。",
   },
   min_order_amount_usd: {
     label: "最低订单金额（USD）",
@@ -110,6 +85,10 @@ export default function AdminSettingsPage() {
     const next = [...settings];
     next[index] = { ...next[index], value: newValue };
     setSettings(next);
+  }
+
+  function toggleSetting(index: number) {
+    updateSetting(index, settings[index].value === "true" ? "false" : "true");
   }
 
   async function saveAll() {
@@ -194,14 +173,35 @@ export default function AdminSettingsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 sm:w-64">
-                    <input
-                      className={cn(
-                        "h-10 w-full rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-[#005466] focus:ring-1 focus:ring-[#005466]",
-                        "font-mono",
-                      )}
-                      value={item.value}
-                      onChange={(event) => updateSetting(index, event.target.value)}
-                    />
+                    {item.isToggle ? (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={item.value === "true"}
+                        aria-label={copy.label}
+                        onClick={() => toggleSetting(index)}
+                        className={cn(
+                          "relative h-7 w-12 rounded-full transition focus:outline-none focus:ring-2 focus:ring-[#005466] focus:ring-offset-2",
+                          item.value === "true" ? "bg-[#005466]" : "bg-slate-300",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "absolute top-1 size-5 rounded-full bg-white shadow-sm transition",
+                            item.value === "true" ? "left-6" : "left-1",
+                          )}
+                        />
+                      </button>
+                    ) : (
+                      <input
+                        className={cn(
+                          "h-10 w-full rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-[#005466] focus:ring-1 focus:ring-[#005466]",
+                          "font-mono",
+                        )}
+                        value={item.value}
+                        onChange={(event) => updateSetting(index, event.target.value)}
+                      />
+                    )}
                   </div>
                 </div>
               );
