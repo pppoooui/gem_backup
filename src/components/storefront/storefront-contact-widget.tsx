@@ -143,7 +143,7 @@ export function StorefrontContactWidget({
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-3 sm:bottom-6 sm:right-6">
+      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-4 sm:bottom-6 sm:right-6">
         {whatsappUrl ? (
           <a
             href={whatsappUrl}
@@ -164,9 +164,9 @@ export function StorefrontContactWidget({
             setStatus("");
             setIsOpen(true);
           }}
-          className="grid size-12 place-items-center rounded-full bg-[#003f4b] text-white shadow-lg transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#003f4b] focus:ring-offset-2"
+          className="grid size-[72px] place-items-center rounded-full bg-[#003f4b] text-white shadow-lg transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#003f4b] focus:ring-offset-2"
         >
-          <ClipboardPenLine className="size-5" />
+          <ClipboardPenLine className="size-7" />
         </button>
       </div>
 

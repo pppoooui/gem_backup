@@ -22,7 +22,10 @@ test.describe("Site smoke tests", () => {
     await page.goto("/en");
     await expect(page.getByRole("heading", { name: "Our journey" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Industry recognition" })).toHaveCount(0);
-    await page.getByRole("button", { name: "Send inquiry" }).click();
+    const inquiryButton = page.getByRole("button", { name: "Send inquiry" });
+    const inquiryButtonBox = await inquiryButton.boundingBox();
+    expect(inquiryButtonBox?.width).toBe(72);
+    await inquiryButton.click();
     await expect(page.getByRole("heading", { name: "Request a quote" })).toBeVisible();
   });
 
