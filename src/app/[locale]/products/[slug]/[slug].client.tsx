@@ -103,12 +103,10 @@ const trustItems = [
 export default function ProductDetailPage({
   locale,
   product,
-  showProductDetails,
   showPrices,
 }: {
   locale: Locale;
   product: Product;
-  showProductDetails: boolean;
   showPrices: boolean;
 }) {
   const router = useRouter();
@@ -195,9 +193,10 @@ export default function ProductDetailPage({
                 <h2 className="text-2xl font-bold text-slate-950">
                   {locale === "en" ? activeProduct.nameEn : activeProduct.nameZh}
                 </h2>
-                {showProductDetails ? <p className="mt-2 text-sm text-slate-500">
-                  1-12 mm | 3A / 5A | {selectedVariant.color}
-                </p> : null}
+                <p className="mt-2 text-sm text-slate-500">
+                  {selectedVariant.sizeMm} | {activeProduct.grade} |{" "}
+                  {selectedVariant.color}
+                </p>
               </div>
               <span
                 className={cn(
@@ -239,7 +238,7 @@ export default function ProductDetailPage({
             </div> : null}
 
             {/* Variant Selector */}
-            {showProductDetails && activeProduct.variants.length > 1 && (
+            {activeProduct.variants.length > 1 && (
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-slate-900">
                   {t.size}
@@ -264,7 +263,7 @@ export default function ProductDetailPage({
             )}
 
             {/* Specs */}
-            {showProductDetails ? <div className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-5">
+            <div className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 p-5">
               <SpecItem label={t.shape} value={activeProduct.shape} />
               <SpecItem
                 label={t.color}
@@ -272,9 +271,9 @@ export default function ProductDetailPage({
               />
               <SpecItem
                 label={t.size}
-                value="1-12 mm"
+                value={selectedVariant.sizeMm}
               />
-              <SpecItem label={t.grade} value="3A / 5A" />
+              <SpecItem label={t.grade} value={activeProduct.grade} />
               <SpecItem label={t.cut} value={activeProduct.cut} />
               <SpecItem
                 label={t.clarity}
@@ -285,14 +284,14 @@ export default function ProductDetailPage({
                 value={activeProduct.material}
               />
               <SpecItem label={t.sku} value={activeProduct.sku} />
-            </div> : null}
+            </div>
 
             {/* Action */}
             <div className="mt-6 flex items-center gap-4">
-              {showProductDetails ? <div className="text-sm text-slate-600">
+              <div className="text-sm text-slate-600">
                 <span className="font-medium">{t.moq}:</span>{" "}
                 {selectedVariant.moq.toLocaleString()} pcs
-              </div> : null}
+              </div>
               {showPrices ? <button
                 type="button"
                 onClick={addSelectedVariantToCart}

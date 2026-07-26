@@ -13,6 +13,12 @@ test.describe("Site smoke tests", () => {
     await expect(cards.first()).toBeVisible({ timeout: 10000 });
     const firstCard = await cards.first().boundingBox();
     expect(firstCard?.width).toBeGreaterThan(140);
+    await expect(page.getByRole("heading", { name: "Filters" })).toBeVisible();
+    await expect(page.getByText("Size: 1 - 12 mm")).toBeVisible();
+    await expect(cards.first().getByText("MOQ")).toBeVisible();
+    await expect(
+      cards.first().getByText(/In stock|Low stock|Quote batch/),
+    ).toBeVisible();
     await expect(page.locator('a[href="/en/cart"]')).toHaveCount(0);
     await expect(page.getByText("Request quote").first()).toBeVisible();
     await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
@@ -39,6 +45,8 @@ test.describe("Site smoke tests", () => {
   test("product detail hides public prices and points buyers to inquiry", async ({ page }) => {
     await page.goto("/en/products/round-brilliant-cut-1mm");
     await expect(page.getByRole("link", { name: "Request quote" })).toBeVisible();
+    await expect(page.getByText("Shape", { exact: true })).toBeVisible();
+    await expect(page.getByText("MOQ:", { exact: true })).toBeVisible();
     await expect(page.getByText("Price Tiers")).toHaveCount(0);
     await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
   });
@@ -115,6 +123,12 @@ test.describe("Site smoke tests", () => {
   test("admin settings page saves through the settings API", async ({ page }) => {
     await page.goto("/admin/settings");
     await expect(page.getByRole("heading", { name: "系统设置" })).toBeVisible();
+    await expect(
+      page.getByRole("switch", { name: "显示商品规格" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("switch", { name: "显示商品单价与购物车" }),
+    ).toBeVisible();
 
     const historyToggle = page.getByRole("switch", { name: "显示发展历程" });
     await expect(historyToggle).toHaveAttribute("aria-checked", "false");

@@ -44,4 +44,4 @@ or staging database.
 
 Deploy the app to Vercel in Singapore and set the production environment there.
 Use Cloudflare for DNS/CDN. Keep Supabase in Singapore and apply every migration,
-including `0011_storefront_controls_and_inquiries.sql`, before accepting live orders.
+including `0012_price_only_catalog_control.sql`, before accepting live orders.

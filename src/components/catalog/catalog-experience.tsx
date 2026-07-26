@@ -193,14 +193,12 @@ export function CatalogExperience({
   products,
   paymentMethods,
   whatsappNumber,
-  showProductDetails,
   showPrices,
 }: {
   locale: Locale;
   products: Product[];
   paymentMethods: PaymentMethod[];
   whatsappNumber?: string;
-  showProductDetails: boolean;
   showPrices: boolean;
 }) {
   const t = copy[locale];
@@ -348,13 +346,12 @@ export function CatalogExperience({
       <main
         className={cn(
           "grid",
-          showProductDetails &&
-            (showPrices
-              ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]"
-              : "lg:grid-cols-[242px_minmax(0,1fr)]"),
+          showPrices
+            ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]"
+            : "lg:grid-cols-[242px_minmax(0,1fr)]",
         )}
       >
-        {showProductDetails ? <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
+        <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-7">
             <h2 className="text-xl font-semibold">{t.filters}</h2>
             <button className="text-xs font-medium text-[#005466]">
@@ -436,7 +433,7 @@ export function CatalogExperience({
               ))}
             </FilterGroup>
           </div>
-        </aside> : null}
+        </aside>
 
         <section className="min-w-0 bg-[#fbfcfc] px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -477,7 +474,7 @@ export function CatalogExperience({
             </div>
           </div>
 
-          {showProductDetails ? <div className="mb-7 flex flex-wrap gap-3">
+          <div className="mb-7 flex flex-wrap gap-3">
             {["Shape: Round", "Color: Colorless", "Size: 1 - 12 mm", "Grade: 3A / 5A"].map(
               (item) => (
                 <button
@@ -490,7 +487,7 @@ export function CatalogExperience({
               ),
             )}
             <button className="text-sm font-medium text-[#005466]">{t.clear}</button>
-          </div> : null}
+          </div>
 
           <div
             className={cn(
@@ -506,7 +503,6 @@ export function CatalogExperience({
                 product={product}
                 locale={locale}
                 priority={index < 3}
-                showProductDetails={showProductDetails}
                 showPrices={showPrices}
                 inquiryHref={inquiryHref}
                 onAdd={showPrices ? () => addProduct(product) : undefined}
@@ -557,7 +553,6 @@ function ProductCard({
   product,
   locale,
   priority,
-  showProductDetails,
   showPrices,
   inquiryHref,
   onAdd,
@@ -565,7 +560,6 @@ function ProductCard({
   product: Product;
   locale: Locale;
   priority?: boolean;
-  showProductDetails: boolean;
   showPrices: boolean;
   inquiryHref: string;
   onAdd?: () => void;
@@ -634,10 +628,10 @@ function ProductCard({
         <h3 className="font-semibold text-slate-950">
           {locale === "en" ? product.nameEn : product.nameZh}
         </h3>
-        {showProductDetails ? <p className="mt-1 text-sm text-slate-500">
-          1-12 mm | 3A / 5A | {variant.color}
-        </p> : null}
-        {showProductDetails ? <div className="mt-4 border-t border-slate-100 pt-3">
+        <p className="mt-1 text-sm text-slate-500">
+          {variant.sizeMm} | {product.grade} | {variant.color}
+        </p>
+        <div className="mt-4 border-t border-slate-100 pt-3">
           <div className="mb-2 flex justify-between text-sm text-slate-500">
             <span>{t.moq}</span>
             <span>{variant.moq.toLocaleString()} pcs</span>
@@ -661,9 +655,9 @@ function ProductCard({
               </div>
             ))}
           </div> : null}
-        </div> : null}
+        </div>
         <div className="mt-5 flex items-center justify-between gap-3">
-          {showProductDetails ? <span
+          <span
             className={cn(
               "inline-flex items-center gap-1.5 text-sm",
               variant.stockStatus === "low_stock"
@@ -673,7 +667,7 @@ function ProductCard({
           >
             <span className="size-2 rounded-full bg-current" />
             {statusText}
-          </span> : <span />}
+          </span>
           {showPrices ? <button
             className={cn(
               "inline-flex h-10 min-w-20 items-center justify-center gap-1.5 rounded-md px-5 text-sm font-semibold text-white transition",

@@ -11,8 +11,10 @@ describe("managed storefront settings", () => {
 
     expect(values.get("home_show_history")).toBe("false");
     expect(values.get("home_show_recognition")).toBe("false");
-    expect(values.get("catalog_show_product_details")).toBe("false");
     expect(values.get("catalog_show_prices")).toBe("false");
+    expect(
+      managedSiteSettings.filter((setting) => setting.key.startsWith("catalog_")),
+    ).toHaveLength(1);
   });
 
   it("merges saved setting values without dropping managed defaults", () => {
@@ -31,5 +33,15 @@ describe("managed storefront settings", () => {
     expect(isEnabledSetting(" TRUE ")).toBe(true);
     expect(isEnabledSetting("1")).toBe(false);
     expect(isEnabledSetting("false")).toBe(false);
+  });
+
+  it("does not expose the retired product-details switch as an extra setting", () => {
+    const merged = mergeManagedSiteSettings([
+      { key: "catalog_show_product_details", value: "false" },
+    ]);
+
+    expect(
+      merged.some((setting) => setting.key === "catalog_show_product_details"),
+    ).toBe(false);
   });
 });

@@ -28,17 +28,10 @@ export const managedSiteSettings: ManagedSiteSetting[] = [
     isToggle: true,
   },
   {
-    key: "catalog_show_product_details",
-    value: "false",
-    labelEn: "Show product specifications",
-    descriptionEn: "Shows product size, grade, MOQ and selection controls. Default range is 1-12 mm, grades 3A and 5A.",
-    isToggle: true,
-  },
-  {
     key: "catalog_show_prices",
     value: "false",
-    labelEn: "Show product prices",
-    descriptionEn: "Shows public prices and enables the cart. Keep hidden until public prices are confirmed.",
+    labelEn: "Show product unit prices",
+    descriptionEn: "Shows public unit prices and enables the cart. Product specifications remain visible.",
     isToggle: true,
   },
   {
@@ -77,6 +70,8 @@ export const managedSiteSettingKeys = new Set(
   managedSiteSettings.map((setting) => setting.key),
 );
 
+const retiredSiteSettingKeys = new Set(["catalog_show_product_details"]);
+
 export function isEnabledSetting(value: string | undefined) {
   return value?.trim().toLowerCase() === "true";
 }
@@ -96,7 +91,11 @@ export function mergeManagedSiteSettings(
   });
 
   const extras = saved
-    .filter((setting) => !managedSiteSettingKeys.has(setting.key))
+    .filter(
+      (setting) =>
+        !managedSiteSettingKeys.has(setting.key) &&
+        !retiredSiteSettingKeys.has(setting.key),
+    )
     .map((setting) => ({
       key: setting.key,
       value: setting.value ?? "",

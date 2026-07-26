@@ -63,5 +63,5 @@ export default async function ProductRoute({
   if (!product) notFound();
 
   const storefrontSettings = await getStorefrontSettings();
-  return <ProductDetailPage locale={locale as Locale} product={product} showProductDetails={storefrontSettings.showProductDetails} showPrices={storefrontSettings.showPrices} />;
+  return <ProductDetailPage locale={locale as Locale} product={product} showPrices={storefrontSettings.showPrices} />;
 }

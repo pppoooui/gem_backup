@@ -6,7 +6,7 @@
 - Enable Data API.
 - Disable automatic exposure of new tables.
 - Enable automatic RLS for new public tables.
-- Run `supabase/migrations/0001_*.sql` through `0011_*.sql` in order.
+- Run `supabase/migrations/0001_*.sql` through `0012_*.sql` in order.
 - Confirm `anon` can select published products, variants, enabled payment methods,
   categories, exchange rates, and public site settings only. Public price tiers
   remain inaccessible while `catalog_show_prices` is false.

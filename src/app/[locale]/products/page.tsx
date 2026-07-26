@@ -35,7 +35,6 @@ export default async function ProductsPage({
       products={products}
       paymentMethods={paymentMethods}
       whatsappNumber={storefrontSettings.whatsappNumber}
-      showProductDetails={storefrontSettings.showProductDetails}
       showPrices={storefrontSettings.showPrices}
     />
   );

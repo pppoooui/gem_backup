@@ -93,7 +93,6 @@ begin
       'home_content_json',
       'home_show_history',
       'home_show_recognition',
-      'catalog_show_product_details',
       'catalog_show_prices'
     );
   end if;

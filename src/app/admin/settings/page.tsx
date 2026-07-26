@@ -23,13 +23,9 @@ const SETTING_COPY: Record<string, { label: string; description: string }> = {
     label: "显示行业认可",
     description: "默认隐藏；打开后在首页展示认证与品质记录。",
   },
-  catalog_show_product_details: {
-    label: "显示商品规格",
-    description: "默认隐藏；打开后显示 1-12 mm、3A / 5A 等规格信息。",
-  },
   catalog_show_prices: {
-    label: "显示商品价格与购物车",
-    description: "默认隐藏；打开后才会公开价格并恢复购物车。",
+    label: "显示商品单价与购物车",
+    description: "默认隐藏单价；商品规格、MOQ、库存和筛选布局始终显示。",
   },
   min_order_amount_usd: {
     label: "最低订单金额（USD）",
