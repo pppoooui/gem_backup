@@ -14,6 +14,7 @@ const updateOrderSchema = z.object({
       "cancelled",
     ])
     .optional(),
+  quoteTotalUsd: z.number().min(0).optional(),
   shippingFeeUsd: z.number().min(0).optional(),
   discountUsd: z.number().min(0).optional(),
   selectedPaymentProvider: z

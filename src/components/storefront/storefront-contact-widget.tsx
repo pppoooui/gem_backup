@@ -28,6 +28,7 @@ const copy = {
     grade: "Grade",
     email: "Email",
     whatsappField: "WhatsApp",
+    address: "Shipping address",
     notes: "Additional requirements",
     notesHint: "Packing, delivery country or special requests",
     submit: "Send inquiry",
@@ -47,6 +48,7 @@ const copy = {
     grade: "等级",
     email: "邮箱",
     whatsappField: "WhatsApp",
+    address: "收货地址",
     notes: "补充需求",
     notesHint: "包装、收货国家或其他要求",
     submit: "发送询盘",
@@ -75,6 +77,10 @@ export function StorefrontContactWidget({
     grade: "5A",
     email: "",
     whatsapp: "",
+    country: "",
+    city: "",
+    pinCode: "",
+    addressLine1: "",
     notes: "",
     website: "",
   });
@@ -130,6 +136,10 @@ export function StorefrontContactWidget({
         grade: "5A",
         email: "",
         whatsapp: "",
+        country: "",
+        city: "",
+        pinCode: "",
+        addressLine1: "",
         notes: "",
         website: "",
       });
@@ -216,6 +226,14 @@ export function StorefrontContactWidget({
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={t.email} type="email" value={form.email} onChange={(value) => updateForm("email", value)} required />
                 <Field label={t.whatsappField} value={form.whatsapp} onChange={(value) => updateForm("whatsapp", value)} required />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={locale === "zh" ? "国家" : "Country"} value={form.country} onChange={(value) => updateForm("country", value)} required />
+                <Field label={locale === "zh" ? "城市" : "City"} value={form.city} onChange={(value) => updateForm("city", value)} required />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={locale === "zh" ? "邮编" : "Postal code"} value={form.pinCode} onChange={(value) => updateForm("pinCode", value)} required />
+                <Field label={t.address} value={form.addressLine1} onChange={(value) => updateForm("addressLine1", value)} required />
               </div>
               <label className="block text-sm font-medium text-black/75">
                 {t.notes}

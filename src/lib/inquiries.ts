@@ -24,6 +24,10 @@ export const inquirySchema = z.object({
     .min(7)
     .max(32)
     .regex(/^[+()\-\s0-9]+$/, "Enter a valid WhatsApp number"),
+  country: z.string().trim().max(80).optional().default(""),
+  city: z.string().trim().max(100).optional().default(""),
+  pinCode: z.string().trim().max(16).optional().default(""),
+  addressLine1: z.string().trim().max(300).optional().default(""),
   notes: z.string().trim().max(2_000).optional().default(""),
   locale: z.enum(["en", "zh"] satisfies Locale[]),
   website: z.string().max(0).optional().default(""),

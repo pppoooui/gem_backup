@@ -82,6 +82,7 @@ type CreateOptions = {
 
 type AdminOrderUpdate = {
   status?: OrderStatus;
+  quoteTotalUsd?: number;
   shippingFeeUsd?: number;
   discountUsd?: number;
   selectedPaymentProvider?: PaymentProvider;
@@ -664,6 +665,7 @@ export function updateAdminOrder(orderNo: string, update: AdminOrderUpdate) {
     return null;
   }
 
+  const subtotalUsd = update.quoteTotalUsd ?? order.subtotalUsd;
   const shippingFeeUsd = update.shippingFeeUsd ?? order.shippingFeeUsd;
   const discountUsd = update.discountUsd ?? order.discountUsd;
 
@@ -674,7 +676,8 @@ export function updateAdminOrder(orderNo: string, update: AdminOrderUpdate) {
     discountUsd,
     selectedPaymentProvider:
       update.selectedPaymentProvider ?? order.selectedPaymentProvider,
-    totalUsd: Math.max(order.subtotalUsd + shippingFeeUsd - discountUsd, 0),
+    subtotalUsd,
+    totalUsd: Math.max(subtotalUsd + shippingFeeUsd - discountUsd, 0),
   };
 
   orderStore().orders.set(orderNo, updated);
@@ -709,11 +712,13 @@ export async function updatePersistedAdminOrder(
   }
 
   const subtotalUsd = Number(current.subtotal_usd);
+  const quotedSubtotalUsd = update.quoteTotalUsd ?? subtotalUsd;
   const shippingFeeUsd = update.shippingFeeUsd ?? Number(current.shipping_fee_usd);
   const discountUsd = update.discountUsd ?? Number(current.discount_usd);
-  const totalUsd = Math.max(subtotalUsd + shippingFeeUsd - discountUsd, 0);
+  const totalUsd = Math.max(quotedSubtotalUsd + shippingFeeUsd - discountUsd, 0);
 
   const persistedUpdate: Record<string, string | number> = {
+    subtotal_usd: quotedSubtotalUsd,
     shipping_fee_usd: shippingFeeUsd,
     discount_usd: discountUsd,
     total_usd: totalUsd,

@@ -47,6 +47,7 @@ export function AdminOrderDetail({
   setOrder: Dispatch<SetStateAction<AdminOrder | null>>;
 }) {
   const [shippingFee, setShippingFee] = useState(order.shippingFeeUsd);
+  const [quoteTotal, setQuoteTotal] = useState(order.subtotalUsd);
   const [discount, setDiscount] = useState(order.discountUsd);
   const [provider, setProvider] = useState<PaymentProvider>(
     order.selectedPaymentProvider ?? "xtransfer",
@@ -57,7 +58,7 @@ export function AdminOrderDetail({
   const [statusMessage, setStatusMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const total = Math.max((order.subtotalUsd ?? 0) + shippingFee - discount, 0);
+  const total = Math.max(quoteTotal + shippingFee - discount, 0);
 
   const whatsappMessage = useMemo(() => {
     const method =
@@ -88,6 +89,7 @@ export function AdminOrderDetail({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status,
+          quoteTotalUsd: quoteTotal,
           shippingFeeUsd: shippingFee,
           discountUsd: discount,
           selectedPaymentProvider: provider,
@@ -174,7 +176,7 @@ export function AdminOrderDetail({
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <MoneyField label="商品小计" value={order.subtotalUsd} readOnly />
+          <MoneyField label="最终商品报价" value={quoteTotal} onChange={setQuoteTotal} />
           <MoneyField
             label="运费"
             value={shippingFee}
