@@ -14,6 +14,9 @@ test.describe("Site smoke tests", () => {
     const firstCard = await cards.first().boundingBox();
     expect(firstCard?.width).toBeGreaterThan(140);
     await expect(page.getByRole("heading", { name: "Filters" })).toBeVisible();
+    await expect(page.getByText("Princess", { exact: true })).toBeVisible();
+    await expect(page.getByLabel(/^Color #/)).toHaveCount(10);
+    await expect(page.getByText("Excellent", { exact: true })).toBeVisible();
     await expect(page.getByText("Size: 1 - 12 mm")).toBeVisible();
     await expect(cards.first().getByText("MOQ")).toBeVisible();
     await expect(
@@ -22,6 +25,10 @@ test.describe("Site smoke tests", () => {
     await expect(page.locator('a[href="/en/cart"]')).toHaveCount(0);
     await expect(page.getByText("Request quote").first()).toBeVisible();
     await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
+    const firstRowCards = await Promise.all(
+      [0, 1, 2, 3].map((index) => cards.nth(index).boundingBox()),
+    );
+    expect(firstRowCards.every((card) => card?.y === firstRowCards[0]?.y)).toBe(true);
   });
 
   test("hidden homepage sections and inquiry window behave as expected", async ({ page }) => {

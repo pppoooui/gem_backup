@@ -141,10 +141,23 @@ const trustItems = [
 
 const shapeFilters = [
   ["Round", "2,450"],
+  ["Princess", "1,280"],
+  ["Cushion", "980"],
+  ["Oval", "1,120"],
+  ["Pear", "1,050"],
 ] as const;
 
 const colors = [
   "#f8fafc",
+  "#d6d7d8",
+  "#efd55f",
+  "#d6b06d",
+  "#efafd0",
+  "#9f74d8",
+  "#b51f2e",
+  "#3151d3",
+  "#079455",
+  "#09090b",
 ];
 
 function lineProduct(line: CartLine, products: Product[]) {
@@ -385,6 +398,10 @@ export function CatalogExperience({
                   </label>
                 ))}
               </div>
+              <button className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#005466]">
+                Show more
+                <ChevronDown className="size-3.5" />
+              </button>
             </FilterGroup>
 
             <FilterGroup title={t.color}>
@@ -398,17 +415,21 @@ export function CatalogExperience({
                   />
                 ))}
               </div>
+              <button className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#005466]">
+                Show more
+                <ChevronDown className="size-3.5" />
+              </button>
             </FilterGroup>
 
             <FilterGroup title={t.size}>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <input
-                  className="h-9 rounded-md border border-slate-200 px-3 text-sm"
+                  className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
                   defaultValue="1"
                 />
                 <span className="text-xs text-slate-500">to</span>
                 <input
-                  className="h-9 rounded-md border border-slate-200 px-3 text-sm"
+                  className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
                   defaultValue="12"
                 />
               </div>
@@ -418,7 +439,7 @@ export function CatalogExperience({
             </FilterGroup>
 
             <FilterGroup title={t.grade}>
-              {["5A", "3A"].map((grade, index) => (
+              {["5A", "3A", "2A"].map((grade, index) => (
                 <label key={grade} className="mt-3 flex items-center gap-2 text-sm">
                   <span
                     className={cn(
@@ -429,6 +450,22 @@ export function CatalogExperience({
                     {index === 0 && <Check className="size-3 text-white" />}
                   </span>
                   {grade}
+                </label>
+              ))}
+            </FilterGroup>
+
+            <FilterGroup title={t.cut}>
+              {["Excellent", "Very Good"].map((cut, index) => (
+                <label key={cut} className="mt-3 flex items-center gap-2 text-sm">
+                  <span
+                    className={cn(
+                      "grid size-4 place-items-center rounded-[3px] border border-slate-300",
+                      index === 0 && "border-[#003f4b] bg-[#003f4b]",
+                    )}
+                  >
+                    {index === 0 && <Check className="size-3 text-white" />}
+                  </span>
+                  {cut}
                 </label>
               ))}
             </FilterGroup>
@@ -493,7 +530,9 @@ export function CatalogExperience({
             className={cn(
               "grid gap-6",
               view === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 min-[1400px]:grid-cols-4"
+                ? showPrices
+                  ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 min-[1500px]:grid-cols-4"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 : "grid-cols-1",
             )}
           >
