@@ -107,6 +107,10 @@ test.describe("Site smoke tests", () => {
     await inquiryDialog.getByLabel("Grade").selectOption("5A");
     await inquiryDialog.getByLabel("Email").fill("buyer@example.com");
     await inquiryDialog.getByLabel("WhatsApp").fill("+86 138 0000 0000");
+    await inquiryDialog.getByLabel("Country").fill("China");
+    await inquiryDialog.getByLabel("City").fill("Shenzhen");
+    await inquiryDialog.getByLabel("Postal code").fill("518000");
+    await inquiryDialog.getByLabel("Shipping address").fill("Nanshan District");
     await inquiryDialog.getByRole("button", { name: "Send inquiry" }).click();
     await expect(inquiryDialog.getByText("Thank you. Your inquiry has been sent.")).toBeVisible();
   });
