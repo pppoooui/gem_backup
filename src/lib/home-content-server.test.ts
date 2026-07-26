@@ -45,6 +45,12 @@ describe("mergeHomeContent", () => {
     expect(defaultHomeContent.testimonials.some(
       (item) => item.nameEn.includes("Vietnam"),
     )).toBe(true);
+    expect(defaultHomeContent.testimonials.map((item) => item.image)).toEqual([
+      "/media/testimonial-review-card.jpg",
+      "/media/dfc-customer-vietnam.jpeg",
+      "/media/testimonial-packing-table.jpg",
+      "/media/testimonial-verified-purchase.jpg",
+    ]);
   });
 
   it("does not use Dubai or fancy-cut content in homepage defaults", () => {

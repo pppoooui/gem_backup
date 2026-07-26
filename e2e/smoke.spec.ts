@@ -35,6 +35,32 @@ test.describe("Site smoke tests", () => {
     await page.goto("/en");
     await expect(page.getByRole("heading", { name: "Our journey" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Industry recognition" })).toHaveCount(0);
+    const testimonialCards = page.locator("#testimonials article");
+    const testimonialImages = testimonialCards.locator("img");
+    await expect(testimonialCards).toHaveCount(4);
+    await expect(testimonialCards.locator("p")).toHaveCount(0);
+    await expect(testimonialImages.nth(0)).toHaveAttribute(
+      "src",
+      /testimonial-review-card/,
+    );
+    await expect(testimonialImages.nth(1)).toHaveAttribute(
+      "src",
+      /dfc-customer-vietnam/,
+    );
+    await expect(testimonialImages.nth(2)).toHaveAttribute(
+      "src",
+      /testimonial-packing-table/,
+    );
+    await expect(testimonialImages.nth(3)).toHaveAttribute(
+      "src",
+      /testimonial-verified-purchase/,
+    );
+    const testimonialImageBox = await testimonialImages.first().boundingBox();
+    expect(
+      Math.abs(
+        (testimonialImageBox?.width ?? 0) - (testimonialImageBox?.height ?? 0),
+      ),
+    ).toBeLessThan(2);
     const inquiryButton = page.getByRole("button", { name: "Send inquiry" });
     const inquiryButtonBox = await inquiryButton.boundingBox();
     expect(inquiryButtonBox?.width).toBe(72);

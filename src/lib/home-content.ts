@@ -66,9 +66,9 @@ export const defaultHomeContent: HomeContent = {
     { image: "", code: "QC 18", labelEn: "Inspection Process", labelZh: "十八道质检" },
   ],
   testimonials: [
-    { image: "/products/round-1mm.png", quoteEn: "The parcel sizes stay consistent, so replenishment is much easier for our setting line.", quoteZh: "尺寸批次很稳定，补货后给镶嵌产线使用更省心。", nameEn: "Mumbai jewelry manufacturer", nameZh: "孟买珠宝制造商" },
+    { image: "/media/testimonial-review-card.jpg", quoteEn: "The parcel sizes stay consistent, so replenishment is much easier for our setting line.", quoteZh: "尺寸批次很稳定，补货后给镶嵌产线使用更省心。", nameEn: "Mumbai jewelry manufacturer", nameZh: "孟买珠宝制造商" },
     { image: "/media/dfc-customer-vietnam.jpeg", quoteEn: "Quality is consistent and communication stays clear from sampling through repeat orders.", quoteZh: "从样品确认到持续补货，品质稳定，沟通也一直清楚顺畅。", nameEn: "Vietnam jewelry partner", nameZh: "越南珠宝合作客户" },
-    { image: "/products/round-parcel.png", quoteEn: "Colorless batches match well and the MOQ is practical for mixed-size orders.", quoteZh: "白石批次匹配度好，混合尺寸订单的起订量也合理。", nameEn: "Bangkok accessory factory", nameZh: "曼谷饰品工厂" },
-    { image: "/products/round-premium.png", quoteEn: "The team responds quickly when we need custom labels and export documents.", quoteZh: "需要定制标签和出口资料时，团队响应很及时。", nameEn: "Istanbul trading company", nameZh: "伊斯坦布尔贸易公司" },
+    { image: "/media/testimonial-packing-table.jpg", quoteEn: "Colorless batches match well and the MOQ is practical for mixed-size orders.", quoteZh: "白石批次匹配度好，混合尺寸订单的起订量也合理。", nameEn: "Bangkok accessory factory", nameZh: "曼谷饰品工厂" },
+    { image: "/media/testimonial-verified-purchase.jpg", quoteEn: "The team responds quickly when we need custom labels and export documents.", quoteZh: "需要定制标签和出口资料时，团队响应很及时。", nameEn: "Istanbul trading company", nameZh: "伊斯坦布尔贸易公司" },
   ],
 };

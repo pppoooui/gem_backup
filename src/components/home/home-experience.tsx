@@ -281,12 +281,8 @@ export function HomeExperience({
           <div className="mt-10 grid gap-5 overflow-x-auto pb-1 [grid-template-columns:repeat(4,minmax(260px,1fr))]">
             {content.testimonials.map((item) => (
               <article key={item.nameEn} className="min-w-64 overflow-hidden border border-black/7 bg-[#fbfbfa]">
-                <div className="relative aspect-[4/3] bg-[#eee]">
+                <div className="relative aspect-square bg-[#eee]">
                   <Image src={item.image} alt={locale === "zh" ? item.nameZh : item.nameEn} fill className="object-cover" sizes="(max-width: 768px) 80vw, 25vw" />
-                </div>
-                <div className="px-5 py-5">
-                  <p className="text-[15px] leading-7 text-black/70">“{locale === "zh" ? item.quoteZh : item.quoteEn}”</p>
-                  <p className="mt-5 text-sm font-semibold text-[#9a6a3a]">{locale === "zh" ? item.nameZh : item.nameEn}</p>
                 </div>
               </article>
             ))}

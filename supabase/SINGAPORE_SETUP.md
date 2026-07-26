@@ -26,6 +26,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 10. `supabase/migrations/0010_dfc_content_refresh.sql`
 11. `supabase/migrations/0011_storefront_controls_and_inquiries.sql`
 12. `supabase/migrations/0012_price_only_catalog_control.sql`
+13. `supabase/migrations/0013_testimonial_images.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -46,11 +47,12 @@ Run these in order instead:
 9. `supabase/migrations/0010_dfc_content_refresh.sql`
 10. `supabase/migrations/0011_storefront_controls_and_inquiries.sql`
 11. `supabase/migrations/0012_price_only_catalog_control.sql`
+12. `supabase/migrations/0013_testimonial_images.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
 `0010_dfc_content_refresh.sql` applies the approved homepage defaults, provisional domain/contact details, and limits public product reads to round colorless CZ without deleting order history. Run it once for this release; rerun it only when you intentionally want to restore these approved homepage defaults, because it resets `home_content_json`.
-`0011_storefront_controls_and_inquiries.sql` creates the protected customer inquiry inbox and initial storefront controls. `0012_price_only_catalog_control.sql` restores the complete catalog specification UI and leaves only public unit prices and the cart behind one switch. Run both once for this release.
+`0011_storefront_controls_and_inquiries.sql` creates the protected customer inquiry inbox and initial storefront controls. `0012_price_only_catalog_control.sql` restores the complete catalog specification UI and leaves only public unit prices and the cart behind one switch. `0013_testimonial_images.sql` updates the three replaced customer-feedback images while preserving the second image. Run each once for this release.
 
 ## 4. Final Check
 
