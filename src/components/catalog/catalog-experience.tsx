@@ -20,6 +20,7 @@ import {
   ShoppingCart,
   SlidersHorizontal,
   Truck,
+  UserCircle,
   X,
 } from "lucide-react";
 import { PUBLIC_SITE_NAME } from "@/lib/site-config";
@@ -327,6 +328,10 @@ export function CatalogExperience({
             >
               <MessageCircle className="size-5 text-emerald-600" />
               <span className="hidden sm:inline">WhatsApp</span>
+            </Link>
+            <Link href={`/${locale}/account`} className="inline-flex items-center gap-1.5" title={locale === "zh" ? "客户账号" : "Customer account"}>
+              <UserCircle className="size-5 text-[#005466]" />
+              <span className="hidden xl:inline">{locale === "zh" ? "账号" : "Account"}</span>
             </Link>
             {showPrices ? <Link
               href={`/${locale}/cart`}
@@ -668,7 +673,12 @@ function ProductCard({
           {locale === "en" ? product.nameEn : product.nameZh}
         </h3>
         <p className="mt-1 text-sm text-slate-500">
-          {variant.sizeMm} | {product.grade} | {variant.color}
+          Round | White | 3A / 5A
+        </p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          {product.variants.length > 1
+            ? `${product.variants.length} sizes: ${product.variants[0].sizeMm} - ${product.variants[product.variants.length - 1].sizeMm}`
+            : variant.sizeMm}
         </p>
         <div className="mt-4 border-t border-slate-100 pt-3">
           <div className="mb-2 flex justify-between text-sm text-slate-500">

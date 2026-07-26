@@ -13,12 +13,12 @@
  *   - The products table is empty (initial state)
  */
 
-import { products as staticProducts } from "@/data/products";
 import { createClient } from "@supabase/supabase-js";
 import { toPublicRoundColorlessProducts } from "@/lib/public-products";
+import { createQuoteCatalogProduct } from "@/lib/catalog-specs";
 import type { Product } from "@/types/domain";
 
-const fallbackProducts = toPublicRoundColorlessProducts(staticProducts);
+const fallbackProducts = [createQuoteCatalogProduct()];
 
 async function fetchFromSupabase(): Promise<Product[]> {
   if (

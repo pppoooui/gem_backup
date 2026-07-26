@@ -11,6 +11,7 @@ test.describe("Site smoke tests", () => {
     await expect(page.getByText("Sort by")).toBeVisible();
     const cards = page.locator("article");
     await expect(cards.first()).toBeVisible({ timeout: 10000 });
+    await expect(cards).toHaveCount(1);
     const firstCard = await cards.first().boundingBox();
     expect(firstCard?.width).toBeGreaterThan(140);
     await expect(page.getByRole("heading", { name: "Filters" })).toBeVisible();
@@ -25,10 +26,7 @@ test.describe("Site smoke tests", () => {
     await expect(page.locator('a[href="/en/cart"]')).toHaveCount(0);
     await expect(page.getByText("Request quote").first()).toBeVisible();
     await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
-    const firstRowCards = await Promise.all(
-      [0, 1, 2, 3].map((index) => cards.nth(index).boundingBox()),
-    );
-    expect(firstRowCards.every((card) => card?.y === firstRowCards[0]?.y)).toBe(true);
+    await expect(cards.first()).toContainText("71 sizes");
   });
 
   test("hidden homepage sections and inquiry window behave as expected", async ({ page }) => {
@@ -69,14 +67,14 @@ test.describe("Site smoke tests", () => {
   });
 
   test("product detail page loads", async ({ page }) => {
-    await page.goto("/en/products/round-brilliant-cut-1mm");
+    await page.goto("/en/products/round-white-cubic-zirconia");
     await expect(page.getByRole("heading", { level: 2 })).toBeVisible({
       timeout: 10000,
     });
   });
 
   test("product detail hides public prices and points buyers to inquiry", async ({ page }) => {
-    await page.goto("/en/products/round-brilliant-cut-1mm");
+    await page.goto("/en/products/round-white-cubic-zirconia");
     await expect(page.getByRole("link", { name: "Request quote" })).toBeVisible();
     await expect(page.getByText("Shape", { exact: true })).toBeVisible();
     await expect(page.getByText("MOQ:", { exact: true })).toBeVisible();

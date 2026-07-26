@@ -13,6 +13,7 @@ import {
   makeWhatsAppUrl,
   openInquiryEventName,
 } from "@/lib/inquiries";
+import { catalogSizeOptions } from "@/lib/catalog-specs";
 import type { Locale } from "@/types/domain";
 
 const copy = {
@@ -56,8 +57,6 @@ const copy = {
   },
 } satisfies Record<Locale, Record<string, string>>;
 
-const sizeOptions = Array.from({ length: 12 }, (_, index) => `${index + 1} mm`);
-
 export function StorefrontContactWidget({
   locale,
   whatsappNumber,
@@ -71,7 +70,7 @@ export function StorefrontContactWidget({
   const [status, setStatus] = useState("");
   const [form, setForm] = useState({
     contactName: "",
-    quantity: "",
+    quantity: "1000",
     sizeMm: "1 mm",
     grade: "5A",
     email: "",
@@ -126,7 +125,7 @@ export function StorefrontContactWidget({
       setStatus(t.success);
       setForm({
         contactName: "",
-        quantity: "",
+        quantity: "1000",
         sizeMm: "1 mm",
         grade: "5A",
         email: "",
@@ -206,9 +205,9 @@ export function StorefrontContactWidget({
             <form className="mt-5 space-y-4" onSubmit={submitInquiry}>
               <Field label={t.contactName} value={form.contactName} onChange={(value) => updateForm("contactName", value)} />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t.quantity} type="number" min="1" value={form.quantity} onChange={(value) => updateForm("quantity", value)} required />
+                <Field label={t.quantity} type="number" min="1000" value={form.quantity} onChange={(value) => updateForm("quantity", value)} required />
                 <SelectField label={t.size} value={form.sizeMm} onChange={(value) => updateForm("sizeMm", value)}>
-                  {sizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}
+                  {catalogSizeOptions.map((size) => <option key={size} value={size}>{size}</option>)}
                 </SelectField>
               </div>
               <SelectField label={t.grade} value={form.grade} onChange={(value) => updateForm("grade", value)}>

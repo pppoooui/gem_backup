@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { catalogSizeOptions } from "@/lib/catalog-specs";
 import type { Locale } from "@/types/domain";
 
 export const inquiryGrades = ["3A", "5A"] as const;
@@ -6,13 +7,15 @@ export const openInquiryEventName = "dfcgem:open-inquiry";
 
 export const inquirySchema = z.object({
   contactName: z.string().trim().max(120).optional().default(""),
-  quantity: z.coerce.number().int().positive().max(100_000_000),
+  quantity: z.coerce.number().int().min(1000, "Minimum quantity is 1,000 pcs").max(100_000_000),
   sizeMm: z
     .string()
     .trim()
     .min(1)
     .max(32)
-    .regex(/^([1-9]|1[0-2])(?:\s?mm)?$/i, "Size must be between 1 and 12 mm"),
+    .refine((value) => catalogSizeOptions.includes(`${value.replace(/\s*mm$/i, "")} mm`), {
+      message: "Please select a supported size from 1 to 12 mm",
+    }),
   grade: z.enum(inquiryGrades),
   email: z.string().trim().email().max(254),
   whatsapp: z
