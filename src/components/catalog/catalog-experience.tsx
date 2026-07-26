@@ -345,7 +345,15 @@ export function CatalogExperience({
         </div>
       </header>
 
-      <main className={cn("grid", showPrices ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]" : "lg:grid-cols-[242px_minmax(0,1fr)]")}>
+      <main
+        className={cn(
+          "grid",
+          showProductDetails &&
+            (showPrices
+              ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]"
+              : "lg:grid-cols-[242px_minmax(0,1fr)]"),
+        )}
+      >
         {showProductDetails ? <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-7">
             <h2 className="text-xl font-semibold">{t.filters}</h2>

@@ -11,6 +11,8 @@ test.describe("Site smoke tests", () => {
     await expect(page.getByText("Sort by")).toBeVisible();
     const cards = page.locator("article");
     await expect(cards.first()).toBeVisible({ timeout: 10000 });
+    const firstCard = await cards.first().boundingBox();
+    expect(firstCard?.width).toBeGreaterThan(140);
     await expect(page.locator('a[href="/en/cart"]')).toHaveCount(0);
     await expect(page.getByText("Request quote").first()).toBeVisible();
     await expect(page.getByText("US$", { exact: false })).toHaveCount(0);
