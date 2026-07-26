@@ -43,7 +43,7 @@ begin
   where p.id <> product_id
     and p.status = 'published';
 
-  foreach size_value in array[
+  foreach size_value in array array[
     '1 mm','1.05 mm','1.1 mm','1.15 mm','1.2 mm','1.25 mm','1.3 mm',
     '1.35 mm','1.4 mm','1.45 mm','1.5 mm','1.55 mm','1.6 mm','1.65 mm',
     '1.7 mm','1.75 mm','1.8 mm','1.85 mm','1.9 mm','1.95 mm','2 mm',
