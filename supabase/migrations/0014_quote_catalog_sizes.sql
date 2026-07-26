@@ -3,15 +3,15 @@
 
 do $$
 declare
-  product_id uuid;
-  size_value text;
+  v_product_id uuid;
+  v_size_value text;
 begin
-  select id into product_id
-  from public.products
-  where slug = 'round-white-cubic-zirconia'
+  select p.id into v_product_id
+  from public.products as p
+  where p.slug = 'round-white-cubic-zirconia'
   limit 1;
 
-  if product_id is null then
+  if v_product_id is null then
     insert into public.products (
       slug, sku, name_en, name_zh, description_en, description_zh,
       shape, material, cut, grade, hs_code, status, cover_image_path
@@ -26,7 +26,7 @@ begin
       'Round', 'Cubic Zirconia', 'Excellent', '5A', '7104.90',
       'published', '/products/round-1mm.png'
     )
-    returning id into product_id;
+    returning id into v_product_id;
   else
     update public.products
     set status = 'published',
@@ -35,15 +35,15 @@ begin
         shape = 'Round',
         material = 'Cubic Zirconia',
         cover_image_path = '/products/round-1mm.png'
-    where id = product_id;
+    where id = v_product_id;
   end if;
 
   update public.products as p
   set status = 'archived'
-  where p.id <> product_id
+  where p.id <> v_product_id
     and p.status = 'published';
 
-  foreach size_value in array array[
+  foreach v_size_value in array array[
     '1 mm','1.05 mm','1.1 mm','1.15 mm','1.2 mm','1.25 mm','1.3 mm',
     '1.35 mm','1.4 mm','1.45 mm','1.5 mm','1.55 mm','1.6 mm','1.65 mm',
     '1.7 mm','1.75 mm','1.8 mm','1.85 mm','1.9 mm','1.95 mm','2 mm',
@@ -59,7 +59,7 @@ begin
     insert into public.product_variants (
       product_id, size_mm, color, package_unit, moq, stock_status, stock_note, clarity
     )
-    values (product_id, size_value, 'White', '1,000 pcs', 1000, 'quote_only', 'Confirm batch', 'VS')
+    values (v_product_id, v_size_value, 'White', '1,000 pcs', 1000, 'quote_only', 'Confirm batch', 'VS')
     on conflict (product_id, size_mm, color, package_unit)
     do update set moq = 1000, stock_status = 'quote_only', stock_note = 'Confirm batch';
   end loop;
