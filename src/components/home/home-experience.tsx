@@ -25,6 +25,8 @@ import { defaultHomeContent, type HomeContent } from "@/lib/home-content";
 import type { StorefrontSettings } from "@/lib/storefront-settings";
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_ADDRESS_EN,
+  PUBLIC_ADDRESS_ZH,
   PUBLIC_SITE_NAME,
 } from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
@@ -316,7 +318,7 @@ function Footer({ locale }: { locale: Locale }) {
         <FooterList title={t.footerAbout} items={t.footerAboutLinks as string[]} />
         <FooterList title={t.footerProduct} items={t.footerProductLinks as string[]} />
         <FooterList title={t.footerService} items={t.footerServiceLinks as string[]} />
-        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />Singapore · Global fulfillment</p></div>
+        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />{locale === "zh" ? PUBLIC_ADDRESS_ZH : PUBLIC_ADDRESS_EN}</p></div>
         <div><h3 className="text-sm font-semibold">{t.subscribe}</h3><p className="mt-4 text-sm text-black/48">{t.subscribeHint}</p><form className="mt-5 flex border border-black/18"><input type="email" aria-label={t.emailPlaceholder} placeholder={t.emailPlaceholder} className="min-w-0 flex-1 px-4 py-3 text-sm outline-none" /><button type="submit" className="bg-[#a97342] px-5 text-sm text-white">{t.subscribe}</button></form></div>
       </div>
       <div className="mx-auto flex max-w-[1320px] flex-col gap-3 pt-6 text-xs text-black/38 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} {t.copyright}</p><Link href={`${base}/products`}>Wholesale CZ · Global fulfillment</Link></div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_ADDRESS_EN,
   PUBLIC_SITE_NAME,
   SITE_URL,
 } from "@/lib/site-config";
@@ -40,6 +41,11 @@ export default function RootLayout({
               description:
                 "Hearts and Arrows cubic zirconia factory specializing in round colorless 5A CZ.",
               email: PUBLIC_CONTACT_EMAIL,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: PUBLIC_ADDRESS_EN,
+                addressCountry: "CN",
+              },
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "sales",
