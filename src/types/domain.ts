@@ -136,6 +136,7 @@ export type CartLine = {
   productId: string;
   variantId: string;
   quantity: number;
+  grade?: "5A" | "3A";
 };
 
 export type PaymentMethod = {

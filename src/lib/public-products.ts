@@ -7,7 +7,8 @@ export function toPublicRoundColorlessProducts(
     if (product.shape !== "Round") return [];
 
     const variants = product.variants.filter(
-      (variant) => variant.color.trim().toLowerCase() === "colorless",
+      (variant) =>
+        ["colorless", "white"].includes(variant.color.trim().toLowerCase()),
     );
 
     return variants.length > 0 ? [{ ...product, variants }] : [];

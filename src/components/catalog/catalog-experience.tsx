@@ -171,7 +171,11 @@ function lineTotal(variant: ProductVariant, quantity: number) {
   const tier = [...variant.priceTiers]
     .reverse()
     .find((item) => quantity >= item.minQuantity);
-  return (tier ?? variant.priceTiers[0]).priceUsd * quantity;
+  return (tier?.priceUsd ?? variant.priceTiers[0]?.priceUsd ?? 0) * quantity;
+}
+
+function cartLineKey(line: CartLine) {
+  return `${line.productId}:${line.variantId}:${line.grade ?? "5A"}`;
 }
 
 type CheckoutFormState = {
@@ -220,7 +224,7 @@ export function CatalogExperience({
   const [cart, setCart] = useState<CartLine[]>([]);
   const [isCartHydrated, setIsCartHydrated] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [isCartPanelOpen, setIsCartPanelOpen] = useState(showPrices);
+  const [isCartPanelOpen, setIsCartPanelOpen] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- restore browser storage after hydration
@@ -239,14 +243,19 @@ export function CatalogExperience({
     }, 0);
   }, [cart, products]);
 
-  function addProduct(product: Product) {
-    const variant = product.variants[0];
+  function addProduct(product: Product, variantId: string, grade: "3A" | "5A") {
+    const variant = product.variants.find((item) => item.id === variantId) ?? product.variants[0];
     setIsCartPanelOpen(true);
     setCart((current) => {
-      const existing = current.find((line) => line.variantId === variant.id);
+      const existing = current.find(
+        (line) =>
+          line.productId === product.id &&
+          line.variantId === variant.id &&
+          (line.grade ?? "5A") === grade,
+      );
       if (existing) {
         return current.map((line) =>
-          line.variantId === variant.id
+          cartLineKey(line) === cartLineKey(existing)
             ? { ...line, quantity: line.quantity + variant.moq }
             : line,
         );
@@ -257,16 +266,17 @@ export function CatalogExperience({
           productId: product.id,
           variantId: variant.id,
           quantity: variant.moq,
+          grade,
         },
       ];
     });
   }
 
-  function updateQuantity(variantId: string, quantity: number) {
+  function updateQuantity(key: string, quantity: number) {
     setCart((current) =>
       current
         .map((line) =>
-          line.variantId === variantId
+          cartLineKey(line) === key
             ? { ...line, quantity: Math.max(quantity, 0) }
             : line,
         )
@@ -274,8 +284,8 @@ export function CatalogExperience({
     );
   }
 
-  function removeLine(variantId: string) {
-    setCart((current) => current.filter((line) => line.variantId !== variantId));
+  function removeLine(key: string) {
+    setCart((current) => current.filter((line) => cartLineKey(line) !== key));
   }
 
   const alternateLocale = locale === "en" ? "zh" : "en";
@@ -283,8 +293,6 @@ export function CatalogExperience({
     /^\/(en|zh)(?=\/|$)/,
     `/${alternateLocale}`,
   );
-  const inquiryHref = `/${locale}#inquiry`;
-
   return (
     <div className="min-h-screen bg-white text-slate-950">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -333,8 +341,9 @@ export function CatalogExperience({
               <UserCircle className="size-5 text-[#005466]" />
               <span className="hidden xl:inline">{locale === "zh" ? "账号" : "Account"}</span>
             </Link>
-            {showPrices ? <Link
-              href={`/${locale}/cart`}
+            <button
+              type="button"
+              onClick={() => setIsCartPanelOpen(true)}
               className="relative inline-flex items-center gap-1.5"
             >
               <ShoppingCart className="size-6" />
@@ -342,7 +351,7 @@ export function CatalogExperience({
                 {cart.length}
               </span>
               <span className="hidden sm:inline">{t.cart}</span>
-            </Link> : null}
+            </button>
           </div>
         </div>
         <div className="hidden border-t border-slate-100 md:grid md:grid-cols-4">
@@ -364,7 +373,7 @@ export function CatalogExperience({
       <main
         className={cn(
           "grid",
-          showPrices
+          isCartPanelOpen
             ? "lg:grid-cols-[242px_minmax(0,1fr)_312px]"
             : "lg:grid-cols-[242px_minmax(0,1fr)]",
         )}
@@ -548,14 +557,13 @@ export function CatalogExperience({
                 locale={locale}
                 priority={index < 3}
                 showPrices={showPrices}
-                inquiryHref={inquiryHref}
-                onAdd={showPrices ? () => addProduct(product) : undefined}
+                onAdd={(variantId, grade) => addProduct(product, variantId, grade)}
               />
             ))}
           </div>
         </section>
 
-        {showPrices && isCartPanelOpen ? (
+        {isCartPanelOpen ? (
           <aside className="border-l border-slate-200 bg-white">
             <CartPanel
               cart={cart}
@@ -567,6 +575,7 @@ export function CatalogExperience({
               removeLine={removeLine}
               onCheckoutSuccess={() => setCart([])}
               onClose={() => setIsCartPanelOpen(false)}
+              showPrices={showPrices}
             />
           </aside>
         ) : null}
@@ -598,18 +607,20 @@ function ProductCard({
   locale,
   priority,
   showPrices,
-  inquiryHref,
   onAdd,
 }: {
   product: Product;
   locale: Locale;
   priority?: boolean;
   showPrices: boolean;
-  inquiryHref: string;
-  onAdd?: () => void;
+  onAdd: (variantId: string, grade: "3A" | "5A") => void;
 }) {
   const t = copy[locale];
-  const variant = product.variants[0];
+  const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0].id);
+  const [selectedGrade, setSelectedGrade] = useState<"3A" | "5A">("5A");
+  const variant =
+    product.variants.find((item) => item.id === selectedVariantId) ??
+    product.variants[0];
   const [isAdded, setIsAdded] = useState(false);
   const statusText =
     variant.stockStatus === "in_stock"
@@ -628,7 +639,7 @@ function ProductCard({
   }, [isAdded]);
 
   function handleAdd() {
-    onAdd?.();
+    onAdd(variant.id, selectedGrade);
     setIsAdded(true);
   }
 
@@ -673,8 +684,29 @@ function ProductCard({
           {locale === "en" ? product.nameEn : product.nameZh}
         </h3>
         <p className="mt-1 text-sm text-slate-500">
-          Round | White | 3A / 5A
+          Round | White | {selectedGrade}
         </p>
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_88px] gap-2">
+          <select
+            aria-label={locale === "zh" ? "选择规格" : "Select size"}
+            value={selectedVariantId}
+            onChange={(event) => setSelectedVariantId(event.target.value)}
+            className="h-9 min-w-0 rounded-md border border-slate-200 bg-white px-2 text-xs outline-none focus:border-[#005466]"
+          >
+            {product.variants.map((item) => (
+              <option key={item.id} value={item.id}>{item.sizeMm}</option>
+            ))}
+          </select>
+          <select
+            aria-label={locale === "zh" ? "选择等级" : "Select grade"}
+            value={selectedGrade}
+            onChange={(event) => setSelectedGrade(event.target.value as "3A" | "5A")}
+            className="h-9 rounded-md border border-slate-200 bg-white px-2 text-xs outline-none focus:border-[#005466]"
+          >
+            <option value="5A">5A</option>
+            <option value="3A">3A</option>
+          </select>
+        </div>
         <p className="mt-1 text-xs leading-5 text-slate-500">
           {product.variants.length > 1
             ? `${product.variants.length} sizes: ${product.variants[0].sizeMm} - ${product.variants[product.variants.length - 1].sizeMm}`
@@ -717,7 +749,7 @@ function ProductCard({
             <span className="size-2 rounded-full bg-current" />
             {statusText}
           </span>
-          {showPrices ? <button
+          <button
             className={cn(
               "inline-flex h-10 min-w-20 items-center justify-center gap-1.5 rounded-md px-5 text-sm font-semibold text-white transition",
               isAdded
@@ -729,12 +761,7 @@ function ProductCard({
           >
             {isAdded ? <Check className="size-4" /> : null}
             {isAdded ? t.added : t.add}
-          </button> : <Link
-            href={inquiryHref}
-            className="inline-flex h-10 min-w-28 items-center justify-center bg-[#003f4b] px-4 text-sm font-semibold text-white transition hover:bg-[#005466]"
-          >
-            {locale === "zh" ? "提交询盘" : "Request quote"}
-          </Link>}
+          </button>
         </div>
       </div>
     </article>
@@ -751,6 +778,7 @@ function CartPanel({
   removeLine,
   onCheckoutSuccess,
   onClose,
+  showPrices,
 }: {
   cart: CartLine[];
   products: Product[];
@@ -761,6 +789,7 @@ function CartPanel({
   removeLine: (variantId: string) => void;
   onCheckoutSuccess: () => void;
   onClose: () => void;
+  showPrices: boolean;
 }) {
   const t = copy[locale];
   const router = useRouter();
@@ -856,10 +885,14 @@ function CartPanel({
       </div>
       <div className="border-b border-slate-100 p-5">
         <p className="text-sm text-slate-500">
-          Subtotal ({validCartLines.length} items)
+          {showPrices ? "Subtotal" : locale === "zh" ? "订单商品" : "Order items"} ({validCartLines.length})
         </p>
-        <p className="mt-1 text-2xl font-semibold">{formatUsd(subtotal)}</p>
-        <p className="text-sm text-slate-500">≈ {formatInr(subtotal * usdInrRate)}</p>
+        {showPrices ? <>
+          <p className="mt-1 text-2xl font-semibold">{formatUsd(subtotal)}</p>
+          <p className="text-sm text-slate-500">≈ {formatInr(subtotal * usdInrRate)}</p>
+        </> : <p className="mt-1 text-sm font-medium text-[#005466]">
+          {locale === "zh" ? "提交后由客服确认价格" : "Price confirmed by sales after submission"}
+        </p>}
         <div className="mt-5 flex gap-3 rounded-md bg-sky-50 p-4 text-sm text-slate-600">
           <Info className="mt-0.5 size-5 shrink-0 text-[#005466]" />
           <span>{t.invoiceNote}</span>
@@ -870,7 +903,7 @@ function CartPanel({
           const { product, variant } = lineProduct(line, products);
           if (!product || !variant) return null;
           return (
-            <div key={variant.id} className="flex gap-3 border-b border-slate-100 pb-4">
+            <div key={cartLineKey(line)} className="flex gap-3 border-b border-slate-100 pb-4">
               <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-slate-950">
                 <Image
                   src={product.imagePath}
@@ -885,10 +918,10 @@ function CartPanel({
                   <div>
                     <p className="text-sm font-semibold">{product.nameEn}</p>
                     <p className="text-xs text-slate-500">
-                      {variant.sizeMm} | {product.grade} | {variant.color}
+                      {variant.sizeMm} | {line.grade ?? product.grade} | {variant.color}
                     </p>
                   </div>
-                  <button onClick={() => removeLine(variant.id)} aria-label="Remove item">
+                  <button onClick={() => removeLine(cartLineKey(line))} aria-label="Remove item">
                     <X className="size-4 text-slate-400" />
                   </button>
                 </div>
@@ -897,26 +930,37 @@ function CartPanel({
                     <button
                       className="grid size-8 place-items-center"
                       onClick={() =>
-                        updateQuantity(variant.id, line.quantity - variant.moq)
+                        updateQuantity(cartLineKey(line), Math.max(variant.moq, line.quantity - variant.moq))
                       }
                     >
                       -
                     </button>
-                    <span className="min-w-14 text-center text-sm">
-                      {line.quantity.toLocaleString()}
-                    </span>
+                    <input
+                      aria-label={locale === "zh" ? "数量" : "Quantity"}
+                      type="number"
+                      min={variant.moq}
+                      step={1}
+                      value={line.quantity}
+                      onChange={(event) =>
+                        updateQuantity(
+                          cartLineKey(line),
+                          Math.max(variant.moq, Number(event.target.value) || variant.moq),
+                        )
+                      }
+                      className="h-8 w-20 border-x border-slate-200 text-center text-xs outline-none"
+                    />
                     <button
                       className="grid size-8 place-items-center"
                       onClick={() =>
-                        updateQuantity(variant.id, line.quantity + variant.moq)
+                        updateQuantity(cartLineKey(line), line.quantity + variant.moq)
                       }
                     >
                       +
                     </button>
                   </div>
-                  <p className="text-sm font-semibold">
+                  {showPrices ? <p className="text-sm font-semibold">
                     {formatUsd(lineTotal(variant, line.quantity))}
-                  </p>
+                  </p> : null}
                 </div>
               </div>
             </div>
@@ -929,7 +973,11 @@ function CartPanel({
           disabled={cart.length === 0}
           onClick={() => setIsCheckoutOpen((current) => !current)}
         >
-          {t.requestInvoice}
+          {showPrices
+            ? t.requestInvoice
+            : locale === "zh"
+              ? "提交订单并确认价格"
+              : "Submit order for quotation"}
         </button>
         {isCheckoutOpen && (
           <form className="mt-5 space-y-4" onSubmit={submitCheckout}>
@@ -1002,7 +1050,7 @@ function CartPanel({
                 onChange={(value) => updateForm("iec", value)}
               />
             </div>
-            <label className="block text-xs font-semibold text-slate-600">
+            {showPrices ? <label className="block text-xs font-semibold text-slate-600">
               {t.manualOptions}
               <select
                 className="mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-normal outline-none focus:border-[#005466]"
@@ -1017,7 +1065,7 @@ function CartPanel({
                   </option>
                 ))}
               </select>
-            </label>
+            </label> : null}
             <label className="block text-xs font-semibold text-slate-600">
               {t.note}
               <textarea
@@ -1044,7 +1092,7 @@ function CartPanel({
           {t.secure}
         </p>
         <p className="mt-2 text-center text-xs text-slate-500">{t.response}</p>
-        <div className="mt-5 border-t border-slate-100 pt-5">
+        {showPrices ? <div className="mt-5 border-t border-slate-100 pt-5">
           <p className="mb-3 text-xs font-semibold text-slate-600">
             {t.manualOptions}
           </p>
@@ -1065,7 +1113,7 @@ function CartPanel({
               WhatsApp
             </div>
           </div>
-        </div>
+        </div> : null}
       </div>
     </div>
   );

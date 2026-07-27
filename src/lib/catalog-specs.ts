@@ -45,3 +45,51 @@ export function createQuoteCatalogProduct(): Product {
     variants,
   };
 }
+
+const catalogGroupImages = [
+  "/products/round-1mm.png",
+  "/products/round-125mm.png",
+  "/products/round-150mm.png",
+  "/products/round-200mm.png",
+  "/products/round-premium.png",
+];
+
+export function groupQuoteCatalogProduct(product: Product): Product[] {
+  const firstGroup = catalogSizeOptions.filter(
+    (size) => Number.parseFloat(size) < 4,
+  );
+  const groups = [
+    firstGroup,
+    ...Array.from({ length: 9 }, (_, index) => {
+      const start = index + 4;
+      return catalogSizeOptions.filter((size) => {
+        const value = Number.parseFloat(size);
+        return value >= start && value < Math.min(start + 1, 12.01);
+      });
+    }),
+  ].filter((sizes) => sizes.length > 0);
+  const variantsBySize = new Map(product.variants.map((variant) => [variant.sizeMm, variant]));
+
+  return groups.map((sizes, index) => {
+    const variants = sizes
+      .map((size) => variantsBySize.get(size))
+      .filter((variant): variant is ProductVariant => Boolean(variant));
+    const first = Number.parseFloat(sizes[0]);
+    const last = Number.parseFloat(sizes[sizes.length - 1]);
+    const range = first === last ? `${first} mm` : `${first}-${last} mm`;
+    return {
+      ...product,
+      id: `${product.id}-group-${index + 1}`,
+      sku: `${product.sku}-G${index + 1}`,
+      slug: `${product.slug}-${String(first).replace(".", "-")}`,
+      nameEn: `Round White CZ ${range}`,
+      nameZh: `圆形白色立方氧化锆 ${range}`,
+      imagePath: catalogGroupImages[index % catalogGroupImages.length],
+      variants,
+    };
+  });
+}
+
+export function createQuoteCatalogProducts(): Product[] {
+  return groupQuoteCatalogProduct(createQuoteCatalogProduct());
+}

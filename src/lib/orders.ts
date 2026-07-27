@@ -183,6 +183,7 @@ const checkoutOrderInputSchema = z.object({
           .int()
           .positive()
           .max(100_000_000, "Quantity is too large"),
+        grade: z.enum(["3A", "5A"]).optional(),
       }),
     )
     .min(1, "Cart is empty")
@@ -331,7 +332,7 @@ function resolveOrderLine(
   const tier = [...variant.priceTiers]
     .reverse()
     .find((item) => line.quantity >= item.minQuantity);
-  const unitPriceUsd = tier?.priceUsd ?? variant.priceTiers[0].priceUsd;
+  const unitPriceUsd = tier?.priceUsd ?? variant.priceTiers[0]?.priceUsd ?? 0;
   const lineTotalUsd = Number((unitPriceUsd * line.quantity).toFixed(2));
 
   return {
@@ -342,7 +343,7 @@ function resolveOrderLine(
     imagePath: product.imagePath,
     sizeMm: variant.sizeMm,
     color: variant.color,
-    grade: product.grade,
+    grade: line.grade ?? product.grade,
     hsCode: product.hsCode,
     packageUnit: variant.packageUnit,
     quantity: line.quantity,

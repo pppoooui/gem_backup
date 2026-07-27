@@ -15,10 +15,13 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { toPublicRoundColorlessProducts } from "@/lib/public-products";
-import { createQuoteCatalogProduct } from "@/lib/catalog-specs";
+import {
+  createQuoteCatalogProducts,
+  groupQuoteCatalogProduct,
+} from "@/lib/catalog-specs";
 import type { Product } from "@/types/domain";
 
-const fallbackProducts = [createQuoteCatalogProduct()];
+const fallbackProducts = createQuoteCatalogProducts();
 
 async function fetchFromSupabase(): Promise<Product[]> {
   if (
@@ -120,7 +123,12 @@ async function fetchFromSupabase(): Promise<Product[]> {
     .filter((product) => product.variants.length > 0);
 
   const publicProducts = toPublicRoundColorlessProducts(mapped);
-  return publicProducts.length > 0 ? publicProducts : fallbackProducts;
+  if (publicProducts.length === 0) return fallbackProducts;
+  return publicProducts.flatMap((product) =>
+    product.slug === "round-white-cubic-zirconia"
+      ? groupQuoteCatalogProduct(product)
+      : product,
+  );
 }
 
 /**
