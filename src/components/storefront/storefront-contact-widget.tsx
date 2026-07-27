@@ -125,8 +125,18 @@ export function StorefrontContactWidget({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, locale }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        orderNo?: string;
+        token?: string;
+      };
       if (!response.ok) throw new Error(payload.error ?? t.failure);
+      if (payload.orderNo && payload.token) {
+        window.location.assign(
+          `/${locale}/order/${payload.orderNo}?token=${encodeURIComponent(payload.token)}`,
+        );
+        return;
+      }
 
       setStatus(t.success);
       setForm({

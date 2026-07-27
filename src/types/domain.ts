@@ -13,6 +13,10 @@ export type OrderStatus =
   | "awaiting_payment"
   | "payment_submitted"
   | "paid"
+  | "production"
+  | "packing"
+  | "in_transit"
+  | "delivered"
   | "processing"
   | "shipped"
   | "cancelled";

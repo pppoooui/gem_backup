@@ -15,6 +15,7 @@ import { getPersistedOrderByToken } from "@/lib/orders";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { formatInr, formatUsd } from "@/lib/utils";
 import type { Locale, PaymentProvider } from "@/types/domain";
+import { OrderLivePanel } from "@/components/orders/order-live-panel";
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -78,6 +79,10 @@ const statusLabel = {
   awaiting_payment: "Awaiting payment",
   payment_submitted: "Payment submitted",
   paid: "Paid",
+  production: "Production",
+  packing: "Packing",
+  in_transit: "In transit",
+  delivered: "Delivered",
   processing: "Processing",
   shipped: "Shipped",
   cancelled: "Cancelled",
@@ -227,34 +232,42 @@ export default async function OrderPage({
                       {line.sizeMm} | {line.grade} | {line.color} | HS {line.hsCode}
                     </p>
                     <p className="mt-2 text-sm text-slate-500">
-                      {line.quantity.toLocaleString()} pcs / {line.packageUnit} ·{" "}
-                      {formatUsd(line.unitPriceUsd, {
+                      {line.quantity.toLocaleString()} pcs / {line.packageUnit}
+                      {line.unitPriceUsd > 0 ? ` · ${formatUsd(line.unitPriceUsd, {
                         minimumFractionDigits: 3,
                         maximumFractionDigits: 3,
-                      })}
+                      })}` : ""}
                     </p>
                   </div>
-                  <p className="text-left font-semibold sm:text-right">
+                  {line.lineTotalUsd > 0 ? <p className="text-left font-semibold sm:text-right">
                     {formatUsd(line.lineTotalUsd)}
-                  </p>
+                  </p> : <span />}
                 </div>
               ))}
             </div>
           </div>
+          <OrderLivePanel
+            locale={locale}
+            orderNo={order.orderNo}
+            token={token ?? ""}
+            customerName={order.customer.contactName}
+            initialStatus={order.status}
+            initialTotal={order.totalUsd}
+          />
         </div>
 
         <aside className="space-y-6">
           <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold">{t.total}</h2>
             <div className="mt-5 space-y-3 text-sm">
-              <AmountRow label={t.subtotal} value={formatUsd(order.subtotalUsd)} />
+              <AmountRow label={t.subtotal} value={order.status === "pending_quote" ? "Waiting for quote" : formatUsd(order.subtotalUsd)} />
               <AmountRow label={t.shippingFee} value="To confirm" />
               <AmountRow label={t.discount} value={formatUsd(order.discountUsd)} />
               <div className="border-t border-slate-100 pt-4">
                 <div className="flex items-start justify-between gap-4">
                   <span className="font-semibold">{t.total}</span>
                   <span className="text-right text-xl font-semibold text-[#002b35]">
-                    {formatUsd(order.totalUsd)}
+                    {order.status === "pending_quote" ? "To confirm" : formatUsd(order.totalUsd)}
                     <span className="block text-sm font-normal text-slate-500">
                       ≈ {formatInr(order.totalUsd * usdInrRate)}
                     </span>
@@ -270,7 +283,7 @@ export default async function OrderPage({
             )}
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          {order.status !== "pending_quote" ? <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold">{t.payment}</h2>
             <div className="mt-4 space-y-3">
               {enabledPaymentMethods.map((method) => (
@@ -286,7 +299,7 @@ export default async function OrderPage({
             <p className="mt-4 text-sm text-slate-500">
               Selected: {selectedPaymentName}
             </p>
-          </div>
+          </div> : null}
 
           <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="flex items-center gap-2 text-lg font-semibold">

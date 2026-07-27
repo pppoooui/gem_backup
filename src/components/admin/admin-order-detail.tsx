@@ -17,6 +17,7 @@ import type {
   PaymentProvider,
 } from "@/types/domain";
 import { cn, formatInr, formatUsd } from "@/lib/utils";
+import { AdminOrderChat } from "@/components/admin/admin-order-chat";
 
 const statusFlow: { status: OrderStatus; label: string; tone: string }[] = [
   { status: "pending_quote", label: "待报价", tone: "bg-amber-500" },
@@ -31,8 +32,10 @@ const statusFlow: { status: OrderStatus; label: string; tone: string }[] = [
     tone: "bg-sky-600",
   },
   { status: "paid", label: "已付款", tone: "bg-green-700" },
-  { status: "processing", label: "处理中", tone: "bg-indigo-600" },
-  { status: "shipped", label: "已发货", tone: "bg-slate-700" },
+  { status: "production", label: "生产", tone: "bg-indigo-600" },
+  { status: "packing", label: "包装", tone: "bg-violet-600" },
+  { status: "in_transit", label: "发出物流", tone: "bg-sky-700" },
+  { status: "delivered", label: "已签收", tone: "bg-slate-700" },
 ];
 
 export function AdminOrderDetail({
@@ -84,11 +87,15 @@ export function AdminOrderDetail({
     setStatusMessage("");
 
     try {
+      const nextStatus =
+        status === "pending_quote" && quoteTotal > 0
+          ? "awaiting_payment"
+          : status;
       const response = await fetch(`/api/admin/orders/${order.orderNo}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status,
+          status: nextStatus,
           quoteTotalUsd: quoteTotal,
           shippingFeeUsd: shippingFee,
           discountUsd: discount,
@@ -143,7 +150,7 @@ export function AdminOrderDetail({
       </div>
 
       <div className="space-y-6 p-5">
-        <div className="grid gap-2 md:grid-cols-6">
+        <div className="grid gap-2 md:grid-cols-4 xl:grid-cols-8">
           {statusFlow.map((step, index) => {
             const currentIndex = statusFlow.findIndex(
               (item) => item.status === status,
@@ -174,6 +181,8 @@ export function AdminOrderDetail({
             );
           })}
         </div>
+
+        <AdminOrderChat orderNo={order.orderNo} />
 
         <div className="grid gap-4 lg:grid-cols-3">
           <MoneyField label="最终商品报价" value={quoteTotal} onChange={setQuoteTotal} />
