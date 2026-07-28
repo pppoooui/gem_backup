@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   ClipboardPenLine,
+  Mail,
   MessageCircle,
   Send,
+  Smartphone,
   X,
 } from "lucide-react";
 import {
@@ -15,6 +17,11 @@ import {
 } from "@/lib/inquiries";
 import { catalogSizeOptions } from "@/lib/catalog-specs";
 import type { Locale } from "@/types/domain";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_PHONE,
+  PUBLIC_LINE_URL,
+} from "@/lib/site-config";
 
 const copy = {
   en: {
@@ -35,7 +42,11 @@ const copy = {
     sending: "Sending...",
     success: "Thank you. Your inquiry has been sent.",
     failure: "Unable to send the inquiry. Please try again or contact us on WhatsApp.",
-    close: "Close inquiry window",
+  close: "Close inquiry window",
+    contact: "Contact us",
+    emailContact: "Email us",
+    line: "Chat on LINE",
+    phone: "WhatsApp / LINE",
   },
   zh: {
     whatsapp: "WhatsApp 咨询",
@@ -56,18 +67,25 @@ const copy = {
     success: "已收到您的询盘，我们会尽快回复。",
     failure: "询盘发送失败，请稍后再试或通过 WhatsApp 联系我们。",
     close: "关闭询盘窗口",
+    contact: "联系我们",
+    emailContact: "发送邮件",
+    line: "LINE 聊天",
+    phone: "WhatsApp / LINE",
   },
 } satisfies Record<Locale, Record<string, string>>;
 
 export function StorefrontContactWidget({
   locale,
   whatsappNumber,
+  lineUrl = PUBLIC_LINE_URL,
 }: {
   locale: Locale;
   whatsappNumber: string;
+  lineUrl?: string;
 }) {
   const t = copy[locale];
   const [isOpen, setIsOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [status, setStatus] = useState("");
   const [form, setForm] = useState({
@@ -162,30 +180,45 @@ export function StorefrontContactWidget({
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-4 sm:bottom-6 sm:right-6">
-        {whatsappUrl ? (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            title={t.whatsapp}
-            aria-label={t.whatsapp}
-            className="grid size-12 place-items-center rounded-full bg-[#25d366] text-white shadow-lg transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#25d366] focus:ring-offset-2"
-          >
-            <MessageCircle className="size-6" />
-          </a>
+      <div className="fixed bottom-5 right-4 z-40 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+        {isContactOpen ? (
+          <div className="w-[min(88vw,300px)] rounded-2xl border border-black/8 bg-white p-4 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#171717]">{t.contact}</p>
+                <p className="mt-1 text-xs leading-5 text-black/50">{PUBLIC_CONTACT_PHONE}</p>
+              </div>
+              <button type="button" aria-label={t.close} title={t.close} onClick={() => setIsContactOpen(false)} className="grid size-7 place-items-center rounded-full bg-black/5 text-black/55 hover:bg-black/10">
+                <X className="size-3.5" />
+              </button>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {whatsappUrl ? (
+                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl bg-[#25d366] px-3 py-2.5 text-sm font-medium text-white hover:brightness-95">
+                  <MessageCircle className="size-4" /> {t.whatsapp}
+                </a>
+              ) : null}
+              <a href={lineUrl || PUBLIC_LINE_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl bg-[#06c755] px-3 py-2.5 text-sm font-medium text-white hover:brightness-95">
+                <Smartphone className="size-4" /> {t.line}
+              </a>
+              <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="flex items-center gap-3 rounded-xl border border-black/10 px-3 py-2.5 text-sm font-medium text-[#171717] hover:bg-black/5">
+                <Mail className="size-4" /> {t.emailContact}
+              </a>
+              <button type="button" onClick={() => { setStatus(""); setIsOpen(true); setIsContactOpen(false); }} className="flex items-center gap-3 rounded-xl bg-[#003f4b] px-3 py-2.5 text-sm font-medium text-white hover:bg-[#005466]">
+                <ClipboardPenLine className="size-4" /> {t.inquiry}
+              </button>
+            </div>
+          </div>
         ) : null}
         <button
           type="button"
-          title={t.inquiry}
-          aria-label={t.inquiry}
-          onClick={() => {
-            setStatus("");
-            setIsOpen(true);
-          }}
-          className="grid size-[72px] place-items-center rounded-full bg-[#003f4b] text-white shadow-lg transition hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#003f4b] focus:ring-offset-2"
+          title={t.contact}
+          aria-label={t.contact}
+          onClick={() => setIsContactOpen((open) => !open)}
+          className="inline-flex h-12 items-center gap-2 rounded-full bg-[#3d8df5] px-4 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] hover:bg-[#2f7fe3] focus:outline-none focus:ring-2 focus:ring-[#3d8df5] focus:ring-offset-2"
         >
-          <ClipboardPenLine className="size-7" />
+          <MessageCircle className="size-5" />
+          <span>{t.contact}</span>
         </button>
       </div>
 

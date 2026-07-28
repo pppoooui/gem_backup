@@ -2,6 +2,10 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 import { isEnabledSetting } from "@/lib/site-settings";
+import {
+  PUBLIC_CONTACT_PHONE,
+  PUBLIC_LINE_URL,
+} from "@/lib/site-config";
 
 export type StorefrontSettings = {
   showHistory: boolean;
@@ -24,8 +28,9 @@ function defaultStorefrontSettings(): StorefrontSettings {
     showHistory: false,
     showRecognition: false,
     showPrices: false,
-    whatsappNumber: process.env.WHATSAPP_VENDOR_PHONE_NUMBER?.trim() ?? "",
-    lineUrl: process.env.LINE_CHAT_URL?.trim() ?? "",
+    whatsappNumber:
+      process.env.WHATSAPP_VENDOR_PHONE_NUMBER?.trim() || PUBLIC_CONTACT_PHONE,
+    lineUrl: process.env.LINE_CHAT_URL?.trim() || PUBLIC_LINE_URL,
   };
 }
 
@@ -55,12 +60,16 @@ export async function getStorefrontSettings(): Promise<StorefrontSettings> {
 
   const values = new Map(data.map((setting) => [setting.key, setting.value]));
   const configuredWhatsApp = values.get("whatsapp_number")?.trim();
+  const configuredWhatsAppDigits = configuredWhatsApp?.replace(/\D/g, "") ?? "";
 
   return {
     showHistory: isEnabledSetting(values.get("home_show_history")),
     showRecognition: isEnabledSetting(values.get("home_show_recognition")),
     showPrices: isEnabledSetting(values.get("catalog_show_prices")),
-    whatsappNumber: configuredWhatsApp || defaults.whatsappNumber,
+    whatsappNumber:
+      configuredWhatsAppDigits.length >= 7
+        ? configuredWhatsApp
+        : defaults.whatsappNumber,
     lineUrl: values.get("line_chat_url")?.trim() || defaults.lineUrl,
   };
 }

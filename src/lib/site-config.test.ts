@@ -4,6 +4,8 @@ import {
   PUBLIC_ADDRESS_EN,
   PUBLIC_ADDRESS_ZH,
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_PHONE,
+  PUBLIC_LINE_URL,
   PUBLIC_SITE_NAME,
 } from "@/lib/site-config";
 
@@ -12,6 +14,8 @@ describe("public site configuration", () => {
     expect(PUBLIC_SITE_NAME).toBe("DFC Cubic Zirconia Factory");
     expect(DEFAULT_SITE_URL).toBe("https://dfccz.top");
     expect(PUBLIC_CONTACT_EMAIL).toBe("emilydfccz@gmail.com");
+    expect(PUBLIC_CONTACT_PHONE).toBe("+852 6034 4227");
+    expect(PUBLIC_LINE_URL).toBe("https://line.me/ti/p/~85260344227");
     expect(PUBLIC_ADDRESS_EN).toBe("Wuzhou, China");
     expect(PUBLIC_ADDRESS_ZH).toBe("中国梧州");
   });

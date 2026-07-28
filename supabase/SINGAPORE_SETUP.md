@@ -31,6 +31,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 15. `supabase/migrations/0015_public_contact_details.sql`
 16. `supabase/migrations/0016_order_chat_and_fulfillment.sql`
 17. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
+18. `supabase/migrations/0018_public_contact_refresh.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -56,12 +57,14 @@ Run these in order instead:
 14. `supabase/migrations/0015_public_contact_details.sql`
 15. `supabase/migrations/0016_order_chat_and_fulfillment.sql`
 16. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
+17. `supabase/migrations/0018_public_contact_refresh.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
 `0010_dfc_content_refresh.sql` applies the approved homepage defaults, provisional domain/contact details, and limits public product reads to round colorless CZ without deleting order history. Run it once for this release; rerun it only when you intentionally want to restore these approved homepage defaults, because it resets `home_content_json`.
 `0011_storefront_controls_and_inquiries.sql` creates the protected customer inquiry inbox and initial storefront controls. `0012_price_only_catalog_control.sql` restores the complete catalog specification UI and leaves only public unit prices and the cart behind one switch. `0013_testimonial_images.sql` updates the three replaced customer-feedback images while preserving the second image. Run each once for this release.
 `0017_global_usd_and_custom_payment_links.sql` adds global USD checkout settings, LINE contact settings, and the custom payment-link table.
+`0018_public_contact_refresh.sql` sets the requested WhatsApp, LINE, and public email contact details.
 
 ## 4. Final Check
 

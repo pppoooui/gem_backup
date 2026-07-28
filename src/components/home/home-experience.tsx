@@ -9,7 +9,9 @@ import {
   Globe2,
   Languages,
   Mail,
+  MessageCircle,
   MapPin,
+  Phone,
   Menu,
   Search,
   Share2,
@@ -25,6 +27,8 @@ import { defaultHomeContent, type HomeContent } from "@/lib/home-content";
 import type { StorefrontSettings } from "@/lib/storefront-settings";
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_PHONE,
+  PUBLIC_LINE_URL,
   PUBLIC_ADDRESS_EN,
   PUBLIC_ADDRESS_ZH,
   PUBLIC_SITE_NAME,
@@ -70,6 +74,13 @@ const copy = {
     subscribeHint: "Receive new product and wholesale updates.",
     emailPlaceholder: "Enter your email",
     copyright: "DFC Cubic Zirconia Factory. All rights reserved.",
+    knowledgeTitle: "Cubic zirconia knowledge",
+    knowledgeBody: "Cubic zirconia (CZ) is a lab-created gemstone valued for its bright optical performance, consistent sizing, and practical wholesale cost. The right cut, size, color, and grade determine how the stone performs in a finished jewelry design.",
+    knowledgeCards: [
+      ["What is CZ?", "A durable, lab-created stone with strong brilliance and a clean appearance for everyday jewelry."],
+      ["Why Hearts and Arrows?", "Precision symmetry returns light more evenly, creating a sharper pattern and lively sparkle."],
+      ["How to choose a grade?", "Compare cut precision, clarity, color consistency, size tolerance, and the quality standard required for your collection."],
+    ],
   },
   zh: {
     home: "首页",
@@ -109,8 +120,15 @@ const copy = {
     subscribeHint: "接收新品与批发资讯。",
     emailPlaceholder: "输入您的邮箱",
     copyright: "DFC Cubic Zirconia Factory 版权所有。",
+    knowledgeTitle: "立方氧化锆专业知识",
+    knowledgeBody: "立方氧化锆（CZ）是一种实验室培育宝石，具有亮度高、尺寸稳定、批发成本实用等特点。切工、尺寸、颜色和等级共同决定宝石在成品首饰中的视觉表现。",
+    knowledgeCards: [
+      ["什么是 CZ？", "立方氧化锆是一种耐用的实验室培育宝石，适合日常首饰和大批量稳定供货。"],
+      ["为什么选择八心八箭？", "精准对称的切工可以让光线更均匀地回射，呈现更清晰的光学图案与闪耀效果。"],
+      ["如何选择等级？", "需要综合比较切工精度、净度、颜色一致性、尺寸公差，以及首饰系列的品质定位。"],
+    ],
   },
-} satisfies Record<Locale, Record<string, string | string[]>>;
+} satisfies Record<Locale, Record<string, string | string[] | string[][]>>;
 
 function Brand({ light = false }: { light?: boolean }) {
   return (
@@ -302,8 +320,31 @@ export function HomeExperience({
         </div>
       </section>
 
+      <section id="cz-knowledge" className="border-t border-black/7 bg-[#f8f7f4] py-16 sm:py-20">
+        <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a6a3a]">DFC KNOWLEDGE BASE</p>
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">{t.knowledgeTitle}</h2>
+            <p className="mt-5 text-sm leading-7 text-black/58">{t.knowledgeBody}</p>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {(t.knowledgeCards as string[][]).map(([title, body]) => (
+              <article key={title} className="border border-black/8 bg-white p-6 shadow-[0_12px_28px_rgba(0,0,0,0.035)]">
+                <div className="grid size-10 place-items-center rounded-full bg-[#f1e8df] text-sm font-semibold text-[#9a6a3a]">{title.slice(0, 1)}</div>
+                <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-black/58">{body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer locale={locale} />
-      <StorefrontContactWidget locale={locale} whatsappNumber={storefrontSettings.whatsappNumber} />
+      <StorefrontContactWidget
+        locale={locale}
+        whatsappNumber={storefrontSettings.whatsappNumber || PUBLIC_CONTACT_PHONE}
+        lineUrl={storefrontSettings.lineUrl || PUBLIC_LINE_URL}
+      />
     </main>
   );
 }
@@ -318,7 +359,7 @@ function Footer({ locale }: { locale: Locale }) {
         <FooterList title={t.footerAbout} items={t.footerAboutLinks as string[]} />
         <FooterList title={t.footerProduct} items={t.footerProductLinks as string[]} />
         <FooterList title={t.footerService} items={t.footerServiceLinks as string[]} />
-        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />{locale === "zh" ? PUBLIC_ADDRESS_ZH : PUBLIC_ADDRESS_EN}</p></div>
+        <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><a href={`https://wa.me/${PUBLIC_CONTACT_PHONE.replace(/\D/g, "")}`} className="mt-3 flex items-center gap-2 text-sm text-black/55"><Phone className="size-4" />WhatsApp · {PUBLIC_CONTACT_PHONE}</a><a href={PUBLIC_LINE_URL} className="mt-3 flex items-center gap-2 text-sm text-black/55"><MessageCircle className="size-4" />LINE · {PUBLIC_CONTACT_PHONE}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />{locale === "zh" ? PUBLIC_ADDRESS_ZH : PUBLIC_ADDRESS_EN}</p></div>
         <div><h3 className="text-sm font-semibold">{t.subscribe}</h3><p className="mt-4 text-sm text-black/48">{t.subscribeHint}</p><form className="mt-5 flex border border-black/18"><input type="email" aria-label={t.emailPlaceholder} placeholder={t.emailPlaceholder} className="min-w-0 flex-1 px-4 py-3 text-sm outline-none" /><button type="submit" className="bg-[#a97342] px-5 text-sm text-white">{t.subscribe}</button></form></div>
       </div>
       <div className="mx-auto flex max-w-[1320px] flex-col gap-3 pt-6 text-xs text-black/38 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} {t.copyright}</p><Link href={`${base}/products`}>Wholesale CZ · Global fulfillment</Link></div>

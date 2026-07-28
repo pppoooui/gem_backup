@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Mail, MessageCircle } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, Smartphone } from "lucide-react";
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_PHONE,
+  PUBLIC_LINE_URL,
   PUBLIC_SITE_NAME,
 } from "@/lib/site-config";
 import type { Locale } from "@/types/domain";
@@ -17,8 +19,7 @@ type Props = { params: Promise<{ locale: Locale }> };
 
 export default async function ContactPage({ params }: Props) {
   const { locale } = await params;
-  const whatsappNumber = process.env.WHATSAPP_VENDOR_PHONE_NUMBER;
-  const normalizedWhatsApp = whatsappNumber?.replace(/\D/g, "");
+  const normalizedWhatsApp = PUBLIC_CONTACT_PHONE.replace(/\D/g, "");
 
   return (
     <main className="min-h-screen bg-[#f7f9f8] text-slate-950">
@@ -58,6 +59,22 @@ export default async function ContactPage({ params }: Props) {
                 </div>
               </a>
             ) : null}
+
+            <a
+              href={PUBLIC_LINE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-lg border border-slate-200 p-5 transition-colors hover:bg-slate-50"
+            >
+              <div className="grid size-12 shrink-0 place-items-center rounded-full bg-emerald-100">
+                <Smartphone className="size-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-semibold">LINE</p>
+                <p className="text-sm text-slate-500">{PUBLIC_CONTACT_PHONE}</p>
+                <p className="mt-0.5 text-xs text-slate-400">Chat and add our sales team</p>
+              </div>
+            </a>
 
             <a
               href={`mailto:${PUBLIC_CONTACT_EMAIL}`}
