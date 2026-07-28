@@ -74,12 +74,19 @@ const copy = {
     subscribeHint: "Receive new product and wholesale updates.",
     emailPlaceholder: "Enter your email",
     copyright: "DFC Cubic Zirconia Factory. All rights reserved.",
-    knowledgeTitle: "Cubic zirconia knowledge",
-    knowledgeBody: "Cubic zirconia (CZ) is a lab-created gemstone valued for its bright optical performance, consistent sizing, and practical wholesale cost. The right cut, size, color, and grade determine how the stone performs in a finished jewelry design.",
+    knowledgeTitle: "5A Premium Cubic Zirconia Craftsmanship",
+    knowledgeBody: "From crystal formation to precision cutting and calibrated sizing, every stage is controlled to deliver clear, brilliant and production-ready 5A cubic zirconia.",
     knowledgeCards: [
-      ["What is CZ?", "A durable, lab-created stone with strong brilliance and a clean appearance for everyday jewelry."],
-      ["Why Hearts and Arrows?", "Precision symmetry returns light more evenly, creating a sharper pattern and lively sparkle."],
-      ["How to choose a grade?", "Compare cut precision, clarity, color consistency, size tolerance, and the quality standard required for your collection."],
+      ["High-temperature vacuum crystal melting", "Zirconia raw material is melted in a vacuum furnace above 2,000°C to remove impurities and bubbles. The resulting crystals have high transparency without haze, white fog or black inclusions. Low-temperature material is more likely to appear cloudy and less transparent."],
+      ["High-precision facet cutting", "Fully automatic precision equipment controls the proportions of the table, star facets and pavilion. Facet edges are sharp and clean, light reflection is even, and the Hearts and Arrows pattern is clear and symmetrical. Simple manual cutting often produces inaccurate angles, scattered light and a dull appearance."],
+      ["Consistent calibrated sizing", "Loose-stone size tolerances are tightly controlled. Round and square cubic zirconia dimensions remain within ±0.03 mm, helping factories avoid gaps and uneven setting heights while significantly reducing setting loss in volume production."],
+    ],
+    faqTitle: "Frequently Asked Questions",
+    faqItems: [
+      ["Will your cubic zirconia scratch easily?", "Cubic zirconia has a Mohs hardness of 8.5. Normal contact with clothing and metal during everyday wear is unlikely to scratch it. It is harder than crystal, glass and many common gemstones, so normal wear should not easily leave marks."],
+      ["Will colored cubic zirconia fade?", "Our colored CZ uses a high-temperature, through-body coloring process. The color penetrates the crystal instead of relying on surface paint or coating, so normal exposure to perspiration and cosmetics will not cause fading or whitening."],
+      ["Can loose CZ be customized in size and shape?", "Yes. Standard sizes are well stocked, while fancy shapes, special millimeter sizes and custom cutting styles can be produced with custom tooling."],
+      ["What is the difference between Hearts and Arrows CZ and ordinary CZ?", "Hearts and Arrows CZ is cut to precise proportions. Under focused light it displays clear heart and arrow patterns, with stronger brightness, fire and visual depth that more closely resembles a diamond."],
     ],
   },
   zh: {
@@ -120,12 +127,19 @@ const copy = {
     subscribeHint: "接收新品与批发资讯。",
     emailPlaceholder: "输入您的邮箱",
     copyright: "DFC Cubic Zirconia Factory 版权所有。",
-    knowledgeTitle: "立方氧化锆专业知识",
-    knowledgeBody: "立方氧化锆（CZ）是一种实验室培育宝石，具有亮度高、尺寸稳定、批发成本实用等特点。切工、尺寸、颜色和等级共同决定宝石在成品首饰中的视觉表现。",
+    knowledgeTitle: "5A高品质立方氧化锆工艺特点",
+    knowledgeBody: "从晶体熔炼、精准切割到标准尺寸控制，每一道工序均围绕通透度、火彩和批量镶嵌稳定性进行严格管理。",
     knowledgeCards: [
-      ["什么是 CZ？", "立方氧化锆是一种耐用的实验室培育宝石，适合日常首饰和大批量稳定供货。"],
-      ["为什么选择八心八箭？", "精准对称的切工可以让光线更均匀地回射，呈现更清晰的光学图案与闪耀效果。"],
-      ["如何选择等级？", "需要综合比较切工精度、净度、颜色一致性、尺寸公差，以及首饰系列的品质定位。"],
+      ["高温真空熔炼晶体", "采用 2000℃以上高温真空炉熔炼氧化锆原料，去除原料杂质气泡，晶体通透度高，无雾面、无白雾、无黑点。区别于低温熔炼锆石，晶体发雾、通透度差。"],
+      ["高精密切角工艺", "采用全自动精密切割设备，台面、星面、亭部比例精准，切割棱角锋利不毛边，光线反射均匀，八心八箭图案清晰对称；劣质锆石手工简易切割，角度偏差大，光线散乱，暗淡无光。"],
+      ["尺寸标准统一", "裸石尺寸公差极小，圆形、方形锆石直径误差控制在 ±0.03mm 以内，厂家批量镶嵌不易出现缝隙、高低不平，可大幅降低首饰镶嵌损耗。"],
+    ],
+    faqTitle: "常见问题 FAQ",
+    faqItems: [
+      ["你们家锆石会不会容易刮花？", "立方氧化锆莫氏硬度 8.5，日常佩戴接触衣物、金属不易刮花，硬度优于水晶、玻璃、普通宝石，正常佩戴不易出现划痕。"],
+      ["彩色锆石会不会掉色？", "我厂彩锆采用高温通体着色工艺，颜色渗透晶体内部，并非表面喷漆镀膜，日常佩戴接触汗液、化妆品不会掉色、发白。"],
+      ["锆石裸石可以定制尺寸形状吗？", "支持定制，常规尺寸现货充足，异形、特殊毫米尺寸、特殊切割方式均可开模定制。"],
+      ["八心八箭锆石和普通锆石差别在哪里？", "八心八箭锆石经过精准比例切割，在聚光下可以呈现清晰的心形与箭形图案，亮度、火彩层次感更强，视觉效果更接近钻石。"],
     ],
   },
 } satisfies Record<Locale, Record<string, string | string[] | string[][]>>;
@@ -334,6 +348,26 @@ export function HomeExperience({
                 <h3 className="mt-5 text-lg font-semibold">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-black/58">{body}</p>
               </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="border-t border-black/7 bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-[1100px] px-5 sm:px-8">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a6a3a]">DFC CUSTOMER GUIDE</p>
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">{t.faqTitle}</h2>
+          </div>
+          <div className="mt-10 divide-y divide-black/8 border-y border-black/8">
+            {(t.faqItems as string[][]).map(([question, answer]) => (
+              <details key={question} className="group py-1">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
+                  <span>{question}</span>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full border border-black/12 text-lg font-light transition group-open:rotate-45">+</span>
+                </summary>
+                <p className="max-w-4xl pb-6 pr-10 text-sm leading-7 text-black/58">{answer}</p>
+              </details>
             ))}
           </div>
         </div>

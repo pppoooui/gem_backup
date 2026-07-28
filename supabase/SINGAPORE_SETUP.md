@@ -32,6 +32,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 16. `supabase/migrations/0016_order_chat_and_fulfillment.sql`
 17. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
 18. `supabase/migrations/0018_public_contact_refresh.sql`
+19. `supabase/migrations/0019_customer_contact_login.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -58,6 +59,7 @@ Run these in order instead:
 15. `supabase/migrations/0016_order_chat_and_fulfillment.sql`
 16. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
 17. `supabase/migrations/0018_public_contact_refresh.sql`
+18. `supabase/migrations/0019_customer_contact_login.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
@@ -65,6 +67,7 @@ Run these in order instead:
 `0011_storefront_controls_and_inquiries.sql` creates the protected customer inquiry inbox and initial storefront controls. `0012_price_only_catalog_control.sql` restores the complete catalog specification UI and leaves only public unit prices and the cart behind one switch. `0013_testimonial_images.sql` updates the three replaced customer-feedback images while preserving the second image. Run each once for this release.
 `0017_global_usd_and_custom_payment_links.sql` adds global USD checkout settings, LINE contact settings, and the custom payment-link table.
 `0018_public_contact_refresh.sql` sets the requested WhatsApp, LINE, and public email contact details.
+`0019_customer_contact_login.sql` adds persistent customer sessions for official LINE Login and WhatsApp verification-code login.
 
 ## 4. Final Check
 

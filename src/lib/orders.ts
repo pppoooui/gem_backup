@@ -412,6 +412,7 @@ export async function createPersistedCheckoutOrder(
       contact_name: input.customer.contactName,
       name: input.customer.companyName,
       whatsapp: input.customer.whatsapp,
+      whatsapp_normalized: input.customer.whatsapp.replace(/\D/g, ""),
       email: input.customer.email,
       country: input.customer.country,
       city: input.customer.city,

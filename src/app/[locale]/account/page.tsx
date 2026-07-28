@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, MessageCircle, Smartphone, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Locale } from "@/types/domain";
 
@@ -34,6 +34,10 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
   const [password, setPassword] = useState("");
   const [orders, setOrders] = useState<AccountOrder[]>([]);
   const [userEmail, setUserEmail] = useState("");
+  const [contactIdentity, setContactIdentity] = useState("");
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [whatsappCode, setWhatsappCode] = useState("");
+  const [whatsappChallenge, setWhatsappChallenge] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -43,9 +47,28 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
 
   useEffect(() => {
     const supabase = createClient();
-    void supabase.auth.getUser().then(({ data }) => {
+    void supabase.auth.getUser().then(async ({ data }) => {
       if (data.user?.email) {
         setUserEmail(data.user.email);
+        void loadOrders();
+        return;
+      }
+      const response = await fetch("/api/auth/contact/session", { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = await response.json() as {
+        session?: {
+          provider?: string;
+          display_name?: string;
+          phone?: string;
+        } | null;
+      };
+      if (payload.session) {
+        setContactIdentity(
+          payload.session.display_name ||
+            payload.session.phone ||
+            payload.session.provider ||
+            "",
+        );
         void loadOrders();
       }
     });
@@ -80,11 +103,53 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
 
   async function signOut() {
     await createClient().auth.signOut();
+    await fetch("/api/auth/contact/session", { method: "DELETE" });
     setUserEmail("");
+    setContactIdentity("");
     setOrders([]);
   }
 
+  async function startWhatsAppAuth() {
+    setBusy(true);
+    setMessage("");
+    const response = await fetch("/api/auth/whatsapp/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: whatsappPhone }),
+    });
+    const payload = await response.json() as { challenge?: string; error?: string };
+    setBusy(false);
+    if (!response.ok || !payload.challenge) {
+      setMessage(payload.error || (locale === "zh" ? "WhatsApp 登录暂不可用。" : "WhatsApp login is unavailable."));
+      return;
+    }
+    setWhatsappChallenge(payload.challenge);
+    setMessage(locale === "zh" ? "验证码已发送到 WhatsApp，10 分钟内有效。" : "A verification code was sent to WhatsApp and expires in 10 minutes.");
+  }
+
+  async function verifyWhatsAppAuth() {
+    setBusy(true);
+    setMessage("");
+    const response = await fetch("/api/auth/whatsapp/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        challenge: whatsappChallenge,
+        code: whatsappCode,
+      }),
+    });
+    const payload = await response.json() as { error?: string };
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(payload.error || (locale === "zh" ? "验证码错误。" : "Incorrect code."));
+      return;
+    }
+    setContactIdentity(whatsappPhone);
+    await loadOrders();
+  }
+
   const isZh = locale === "zh";
+  const isSignedIn = Boolean(userEmail || contactIdentity);
   return (
     <main className="min-h-screen bg-[#f7f9f8] px-4 py-10 text-slate-950">
       <section className="mx-auto max-w-5xl">
@@ -94,9 +159,9 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
         <div className="mt-6 grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
           <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
             <h1 className="text-2xl font-semibold">{isZh ? "客户账号" : "Customer account"}</h1>
-            {userEmail ? (
+            {isSignedIn ? (
               <div className="mt-5 space-y-4">
-                <p className="text-sm text-slate-600">{userEmail}</p>
+                <p className="text-sm text-slate-600">{userEmail || contactIdentity}</p>
                 <button onClick={signOut} className="h-10 border border-slate-200 px-4 text-sm font-semibold">
                   {isZh ? "退出登录" : "Sign out"}
                 </button>
@@ -118,13 +183,51 @@ export default function AccountPage({ params }: { params: Promise<{ locale: Loca
                     {busy ? "..." : mode === "login" ? (isZh ? "登录" : "Sign in") : (isZh ? "注册" : "Register")}
                   </button>
                 </form>
+                <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  {isZh ? "或使用社交账号" : "or use a social account"}
+                  <span className="h-px flex-1 bg-slate-200" />
+                </div>
+                <div className="space-y-3">
+                  {!whatsappChallenge ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={whatsappPhone}
+                        onChange={(event) => setWhatsappPhone(event.target.value)}
+                        placeholder={isZh ? "WhatsApp 号码（含国家码）" : "WhatsApp number with country code"}
+                        className="h-11 min-w-0 flex-1 border border-slate-200 px-3 text-sm"
+                      />
+                      <button type="button" disabled={busy || whatsappPhone.length < 7} onClick={startWhatsAppAuth} className="inline-flex h-11 items-center gap-2 bg-[#25d366] px-3 text-sm font-semibold text-white disabled:bg-slate-300">
+                        <MessageCircle className="size-4" />
+                        WhatsApp
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        value={whatsappCode}
+                        onChange={(event) => setWhatsappCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                        inputMode="numeric"
+                        placeholder={isZh ? "6 位验证码" : "6-digit code"}
+                        className="h-11 min-w-0 flex-1 border border-slate-200 px-3 text-sm"
+                      />
+                      <button type="button" disabled={busy || whatsappCode.length !== 6} onClick={verifyWhatsAppAuth} className="h-11 bg-[#25d366] px-4 text-sm font-semibold text-white disabled:bg-slate-300">
+                        {isZh ? "验证登录" : "Verify"}
+                      </button>
+                    </div>
+                  )}
+                  <a href={`/api/auth/line/start?locale=${locale}`} className="flex h-11 w-full items-center justify-center gap-2 bg-[#06c755] text-sm font-semibold text-white">
+                    <Smartphone className="size-4" />
+                    {isZh ? "使用 LINE 账号登录" : "Continue with LINE"}
+                  </a>
+                </div>
                 {message && <p className="mt-4 text-sm text-[#005466]">{message}</p>}
               </>
             )}
           </section>
           <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold">{isZh ? "我的订单" : "My orders"}</h2>
-            {!userEmail ? (
+            {!isSignedIn ? (
               <p className="mt-4 text-sm text-slate-500">{isZh ? "登录后查看订单。" : "Sign in to view your orders."}</p>
             ) : orders.length === 0 ? (
               <p className="mt-4 text-sm text-slate-500">{isZh ? "暂时没有关联订单。" : "No orders found for this account."}</p>

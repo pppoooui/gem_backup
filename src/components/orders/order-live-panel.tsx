@@ -6,6 +6,7 @@ import {
   Check,
   CreditCard,
   ExternalLink,
+  Bell,
   MessageCircle,
   Send,
 } from "lucide-react";
@@ -28,6 +29,22 @@ function normalizedStatus(status: OrderStatus) {
   if (status === "processing") return "production";
   if (status === "shipped") return "in_transit";
   return status;
+}
+
+function messageDay(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function messageTime(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: locale !== "zh",
+  }).format(new Date(value));
 }
 
 export function OrderLivePanel({
@@ -57,8 +74,16 @@ export function OrderLivePanel({
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [chatLoaded, setChatLoaded] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const chatSectionRef = useRef<HTMLElement>(null);
+  const chatViewportRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
+  const initializedMessagesRef = useRef(false);
+  const knownAdminMessageIdsRef = useRef(new Set<string>());
+  const initialPageScrollDoneRef = useRef(false);
+  const chatVisibleRef = useRef(false);
+  const originalTitleRef = useRef("");
 
   const refresh = useCallback(async () => {
     const [orderResponse, chatResponse] = await Promise.all([
@@ -72,9 +97,30 @@ export function OrderLivePanel({
     }
     if (chatResponse.ok) {
       const data = await chatResponse.json();
-      setMessages(data.messages ?? []);
+      const nextMessages = (data.messages ?? []) as OrderMessage[];
+      const nextAdminMessages = nextMessages.filter(
+        (item) => item.senderRole === "admin",
+      );
+      if (initializedMessagesRef.current) {
+        const newAdminMessages = nextAdminMessages.filter(
+          (item) => !knownAdminMessageIdsRef.current.has(item.id),
+        );
+        if (newAdminMessages.length > 0 && !chatVisibleRef.current) {
+          setUnreadCount((current) => current + newAdminMessages.length);
+          document.title = `(${newAdminMessages.length}) ${
+            zh ? "客服新消息" : "New sales message"
+          } · ${originalTitleRef.current}`;
+        }
+      } else {
+        initializedMessagesRef.current = true;
+      }
+      knownAdminMessageIdsRef.current = new Set(
+        nextAdminMessages.map((item) => item.id),
+      );
+      setMessages(nextMessages);
+      setChatLoaded(true);
     }
-  }, [orderNo, token]);
+  }, [orderNo, token, zh]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial remote order synchronization
@@ -84,8 +130,51 @@ export function OrderLivePanel({
   }, [refresh]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const viewport = chatViewportRef.current;
+    if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    originalTitleRef.current = document.title;
+    const section = chatSectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        chatVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          setUnreadCount(0);
+          document.title = originalTitleRef.current;
+        }
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+      document.title = originalTitleRef.current;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!chatLoaded || initialPageScrollDoneRef.current) return;
+    initialPageScrollDoneRef.current = true;
+    window.requestAnimationFrame(() => {
+      chatSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      messageInputRef.current?.focus({ preventScroll: true });
+    });
+  }, [chatLoaded]);
+
+  function openUnreadMessages() {
+    setUnreadCount(0);
+    document.title = originalTitleRef.current;
+    chatSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   async function postMessage(nextMessage: string) {
     if (!nextMessage.trim()) return false;
@@ -160,6 +249,16 @@ export function OrderLivePanel({
 
   return (
     <div className="space-y-6">
+      {unreadCount > 0 ? (
+        <button
+          type="button"
+          onClick={openUnreadMessages}
+          className="fixed right-4 top-4 z-50 inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-xl sm:right-6"
+        >
+          <Bell className="size-4" />
+          {zh ? `客服有 ${unreadCount} 条新消息` : `${unreadCount} new sales message${unreadCount > 1 ? "s" : ""}`}
+        </button>
+      ) : null}
       <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">{zh ? "订单进度" : "Order progress"}</h2>
         <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -275,24 +374,50 @@ export function OrderLivePanel({
         </div>
       </section>
 
-      <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+      <section
+        ref={chatSectionRef}
+        id="order-chat"
+        className="scroll-mt-4 rounded-md border border-slate-200 bg-white shadow-sm"
+      >
         <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
           <MessageCircle className="size-5 text-[#005466]" />
           <h2 className="font-semibold">{zh ? "在线联系客服" : "Chat with sales"}</h2>
+          {unreadCount > 0 ? (
+            <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+              {unreadCount}
+            </span>
+          ) : null}
           <span className="ml-auto text-xs text-slate-400">{zh ? "每 5 秒自动更新" : "Updates every 5 seconds"}</span>
         </div>
-        <div className="h-72 space-y-3 overflow-y-auto bg-slate-50 p-4">
+        <div ref={chatViewportRef} className="h-80 space-y-3 overflow-y-auto bg-[#f3f4f6] p-4">
           {messages.length === 0 ? (
             <p className="text-center text-sm text-slate-400">{zh ? "发送消息确认价格或交期。" : "Send a message about price or lead time."}</p>
-          ) : messages.map((item) => (
-            <div key={item.id} className={cn("flex", item.senderRole === "customer" ? "justify-end" : "justify-start")}>
-              <div className={cn("max-w-[82%] rounded-md px-3 py-2 text-sm", item.senderRole === "customer" ? "bg-[#003f4b] text-white" : "border border-slate-200 bg-white text-slate-700")}>
-                <p className="text-xs opacity-65">{item.senderName || (item.senderRole === "admin" ? "DFC Sales" : customerName)}</p>
-                <p className="mt-1 whitespace-pre-wrap">{item.message}</p>
+          ) : messages.map((item, index) => {
+            const showDay =
+              index === 0 ||
+              messageDay(messages[index - 1].createdAt, locale) !==
+                messageDay(item.createdAt, locale);
+            return (
+              <div key={item.id}>
+                {showDay ? (
+                  <p className="mb-3 text-center text-[11px] text-slate-400">
+                    <span className="rounded bg-slate-200/80 px-2 py-1">
+                      {messageDay(item.createdAt, locale)}
+                    </span>
+                  </p>
+                ) : null}
+                <div className={cn("flex", item.senderRole === "customer" ? "justify-end" : "justify-start")}>
+                  <div className={cn("max-w-[82%] rounded-lg px-3 py-2 text-sm shadow-sm", item.senderRole === "customer" ? "bg-[#95ec69] text-slate-900" : "border border-slate-200 bg-white text-slate-700")}>
+                    <div className="flex items-center justify-between gap-3 text-[11px] opacity-60">
+                      <span>{item.senderName || (item.senderRole === "admin" ? "DFC Sales" : customerName)}</span>
+                      <time dateTime={item.createdAt}>{messageTime(item.createdAt, locale)}</time>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap leading-6">{item.message}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-          <div ref={bottomRef} />
+            );
+          })}
         </div>
         <form className="flex gap-2 border-t border-slate-100 p-4" onSubmit={sendMessage}>
           <input ref={messageInputRef} value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} className="h-11 min-w-0 flex-1 border border-slate-200 px-3 text-sm outline-none focus:border-[#005466]" placeholder={zh ? "输入消息..." : "Type a message..."} />

@@ -11,6 +11,16 @@ type Message = {
   createdAt: string;
 };
 
+function formatMessageDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(value));
+}
+
 export function AdminOrderChat({ orderNo }: { orderNo: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
@@ -62,7 +72,10 @@ export function AdminOrderChat({ orderNo }: { orderNo: string }) {
         {messages.length === 0 ? <p className="text-center text-sm text-slate-400">暂无消息</p> : messages.map((item) => (
           <div key={item.id} className={`flex ${item.senderRole === "admin" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[82%] rounded-md px-3 py-2 text-sm ${item.senderRole === "admin" ? "bg-[#003f4b] text-white" : "border border-slate-200 bg-white"}`}>
-              <p className="text-xs opacity-65">{item.senderName || (item.senderRole === "admin" ? "DFC Sales" : "客户")}</p>
+              <div className="flex items-center justify-between gap-3 text-xs opacity-65">
+                <span>{item.senderName || (item.senderRole === "admin" ? "DFC Sales" : "客户")}</span>
+                <time dateTime={item.createdAt}>{formatMessageDate(item.createdAt)}</time>
+              </div>
               <p className="mt-1 whitespace-pre-wrap">{item.message}</p>
             </div>
           </div>

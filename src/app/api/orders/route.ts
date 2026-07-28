@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createPersistedCheckoutOrder, toPublicOrder } from "@/lib/orders";
 import { toOrderApiError } from "@/lib/order-api-error";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import {
+  customerSessionCookie,
+  linkOrderCustomerIdentity,
+  resolveCustomerSession,
+} from "@/lib/customer-contact-auth";
 
 const MAX_ORDER_BODY_BYTES = 64 * 1024;
 const ORDER_RATE_LIMIT = {
@@ -49,6 +55,9 @@ export async function POST(request: Request) {
 
     const input = await request.json();
     const { order, token } = await createPersistedCheckoutOrder(input);
+    const sessionToken = (await cookies()).get(customerSessionCookie)?.value;
+    const contactSession = await resolveCustomerSession(sessionToken);
+    await linkOrderCustomerIdentity(order.orderNo, contactSession);
     const publicOrder = toPublicOrder(order);
     const orderPath = `/${order.locale}/order/${order.orderNo}?token=${encodeURIComponent(token)}`;
 
