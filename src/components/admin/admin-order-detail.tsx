@@ -9,14 +9,13 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { usdInrRate } from "@/data/products";
 import type {
   AdminOrder,
   OrderStatus,
   PaymentMethod,
   PaymentProvider,
 } from "@/types/domain";
-import { cn, formatInr, formatUsd } from "@/lib/utils";
+import { cn, formatUsd } from "@/lib/utils";
 import { AdminOrderChat } from "@/components/admin/admin-order-chat";
 
 const statusFlow: { status: OrderStatus; label: string; tone: string }[] = [
@@ -75,7 +74,7 @@ export function AdminOrderDetail({
     return [
       `Hello ${order.customerName},`,
       `Your proforma invoice for ${order.orderNo} is ready.`,
-      `Total: ${formatUsd(total)} (approx. ${formatInr(total * usdInrRate)}).`,
+      `Total: ${formatUsd(total)} USD.`,
       `Payment method: ${method}.`,
       `Items: ${itemSummary}.`,
       "Please reply here and we will send the full PI and account details.",
@@ -142,7 +141,7 @@ export function AdminOrderDetail({
         <div>
           <h2 className="text-lg font-semibold">{order.orderNo}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            {order.customerName} · {order.customerWhatsApp} · PIN{" "}
+            {order.customerName} · {order.customerWhatsApp} · 邮编{" "}
             {order.pinCode}
           </p>
         </div>
@@ -222,9 +221,7 @@ export function AdminOrderDetail({
               <p className="mt-1 text-2xl font-semibold">
                 {formatUsd(total)}
               </p>
-              <p className="text-sm text-slate-500">
-                ≈ {formatInr(total * usdInrRate)}
-              </p>
+              <p className="text-sm text-slate-500">USD</p>
             </div>
             <button
               className="h-11 rounded-md bg-[#003f4b] px-5 text-sm font-semibold text-white disabled:cursor-wait disabled:bg-slate-300"

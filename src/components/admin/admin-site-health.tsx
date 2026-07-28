@@ -68,12 +68,13 @@ function buildChecksFromApi(payload: HealthPayload): HealthItem[] {
     detail: waConfigured ? "已配置" : "需要配置环境变量",
   });
 
-  // 6. Exchange Rate
-  const rate = (checks.exchangeRate as { rate?: number })?.rate;
+  // 6. Customer-facing currency
+  const currencyCode =
+    (checks.currency as { code?: string })?.code ?? "USD";
   results.push({
-    label: "汇率",
-    status: checks.exchangeRate?.status === "ok" ? "ok" : "error",
-    detail: rate ? `USD/INR ${rate}` : "缺少汇率",
+    label: "前台币种",
+    status: checks.currency?.status === "ok" ? "ok" : "error",
+    detail: currencyCode,
   });
 
   // 7. Payment Methods

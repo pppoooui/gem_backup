@@ -33,6 +33,32 @@ export type AdminRole = "admin" | "superadmin";
 
 export type HealthCheckStatus = "ok" | "warn" | "error";
 
+export type CustomPaymentLinkStatus =
+  | "active"
+  | "payment_submitted"
+  | "paid"
+  | "cancelled"
+  | "expired";
+
+export type CustomPaymentLink = {
+  id: string;
+  token: string;
+  locale: Locale;
+  title: string;
+  specification: string;
+  quantity: string;
+  amountUsd: number;
+  customerName?: string;
+  customerWhatsApp?: string;
+  note?: string;
+  paymentUrl?: string;
+  status: CustomPaymentLinkStatus;
+  expiresAt?: string;
+  paymentSubmittedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 // ---------------------------------------------------------------------------
 // Domain entities — must stay aligned with supabase/migrations/
 // ---------------------------------------------------------------------------

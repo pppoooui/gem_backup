@@ -4,9 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { usdInrRate } from "@/data/products";
 import { getCartLines, clearCart } from "@/lib/cart-store";
-import { formatInr, formatUsd } from "@/lib/utils";
+import { formatUsd } from "@/lib/utils";
 import type {
   CartLine,
   Locale,
@@ -32,23 +31,23 @@ const copy = {
     contactName: "Contact Person",
     contactNameHint: "Full name",
     whatsapp: "WhatsApp",
-    whatsappHint: "+91 98765 43210",
+    whatsappHint: "+1 202 555 0123",
     email: "Email",
     emailHint: "you@company.com",
     country: "Country",
-    countryHint: "India",
+    countryHint: "e.g. United States",
     city: "City",
-    cityHint: "e.g. Jaipur, Mumbai",
-    pinCode: "PIN Code",
-    pinCodeHint: "6 digits for India",
+    cityHint: "e.g. New York, Singapore",
+    pinCode: "Postal Code",
+    pinCodeHint: "ZIP / postal code",
     addressLine1: "Shipping Address",
     addressLine1Hint: "Street, building, area",
-    landmark: "Landmark (optional)",
-    landmarkHint: "Nearby landmark",
-    gstin: "GSTIN (optional)",
-    gstinHint: "Goods and Services Tax ID",
-    iec: "IEC (optional)",
-    iecHint: "Import Export Code",
+    landmark: "Address Details (optional)",
+    landmarkHint: "Building, unit, or delivery note",
+    gstin: "Tax / VAT ID (optional)",
+    gstinHint: "Local tax or VAT number",
+    iec: "Import / Export ID (optional)",
+    iecHint: "Customs registration number",
     payment: "Payment Method",
     selectPayment: "Select a payment method",
     cartEmpty: "Your cart is empty",
@@ -75,23 +74,23 @@ const copy = {
     contactName: "联系人",
     contactNameHint: "全名",
     whatsapp: "WhatsApp",
-    whatsappHint: "+91 98765 43210",
+    whatsappHint: "+86 138 0000 0000",
     email: "邮箱",
     emailHint: "you@company.com",
     country: "国家",
-    countryHint: "印度",
+    countryHint: "例如：美国、新加坡",
     city: "城市",
-    cityHint: "如：斋浦尔、孟买",
-    pinCode: "PIN 邮编",
-    pinCodeHint: "6位印度邮编",
+    cityHint: "例如：纽约、新加坡",
+    pinCode: "邮政编码",
+    pinCodeHint: "ZIP / 邮政编码",
     addressLine1: "收货地址",
     addressLine1Hint: "街道、大楼、区域",
-    landmark: "地标（可选）",
-    landmarkHint: "附近地标",
-    gstin: "GSTIN（可选）",
-    gstinHint: "商品服务税号",
-    iec: "IEC（可选）",
-    iecHint: "进出口编码",
+    landmark: "地址补充（可选）",
+    landmarkHint: "楼栋、门牌或配送说明",
+    gstin: "税号 / VAT（可选）",
+    gstinHint: "当地税号或 VAT 号码",
+    iec: "进出口编号（可选）",
+    iecHint: "海关登记编号",
     payment: "收款方式",
     selectPayment: "选择收款方式",
     cartEmpty: "购物车为空",
@@ -133,7 +132,7 @@ export default function CheckoutPage({
   const [contactName, setContactName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("India");
+  const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
@@ -213,9 +212,7 @@ export default function CheckoutPage({
     email.includes("@") &&
     country.trim().length >= 2 &&
     city.trim().length >= 2 &&
-    (/^(india|in)$/i.test(country.trim())
-      ? /^\d{6}$/.test(pinCode.trim())
-      : pinCode.trim().length >= 3) &&
+    pinCode.trim().length >= 3 &&
     addressLine1.trim().length >= 5 &&
     validCartLines.length > 0 &&
     selectedProvider !== "";
@@ -347,7 +344,7 @@ export default function CheckoutPage({
                 onChange={setPinCode}
                 required
                 maxLength={16}
-                inputMode={/^(india|in)$/i.test(country.trim()) ? "numeric" : "text"}
+                inputMode="text"
               />
               <Field
                 label={t.addressLine1}
@@ -451,7 +448,7 @@ export default function CheckoutPage({
                 </option>
                 {enabledPaymentMethods.map((m) => (
                   <option key={m.id} value={m.provider}>
-                    {m.name} ({m.currencies.join(", ")})
+                    {m.name} (USD)
                   </option>
                 ))}
               </select>
@@ -488,9 +485,7 @@ export default function CheckoutPage({
                   <span className="font-semibold">{t.total}</span>
                   <span className="text-right text-xl font-semibold text-[#002b35]">
                     {formatUsd(subtotalUsd)}
-                    <span className="block text-sm font-normal text-slate-500">
-                      ≈ {formatInr(subtotalUsd * usdInrRate)}
-                    </span>
+                    <span className="block text-sm font-normal text-slate-500">USD</span>
                   </span>
                 </div>
               </div>

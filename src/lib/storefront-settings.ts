@@ -8,10 +8,12 @@ export type StorefrontSettings = {
   showRecognition: boolean;
   showPrices: boolean;
   whatsappNumber: string;
+  lineUrl: string;
 };
 
 const storefrontSettingKeys = [
   "whatsapp_number",
+  "line_chat_url",
   "home_show_history",
   "home_show_recognition",
   "catalog_show_prices",
@@ -23,6 +25,7 @@ function defaultStorefrontSettings(): StorefrontSettings {
     showRecognition: false,
     showPrices: false,
     whatsappNumber: process.env.WHATSAPP_VENDOR_PHONE_NUMBER?.trim() ?? "",
+    lineUrl: process.env.LINE_CHAT_URL?.trim() ?? "",
   };
 }
 
@@ -58,5 +61,6 @@ export async function getStorefrontSettings(): Promise<StorefrontSettings> {
     showRecognition: isEnabledSetting(values.get("home_show_recognition")),
     showPrices: isEnabledSetting(values.get("catalog_show_prices")),
     whatsappNumber: configuredWhatsApp || defaults.whatsappNumber,
+    lineUrl: values.get("line_chat_url")?.trim() || defaults.lineUrl,
   };
 }

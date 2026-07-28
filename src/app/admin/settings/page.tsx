@@ -15,6 +15,11 @@ const SETTING_COPY: Record<string, { label: string; description: string }> = {
     label: "WhatsApp 号码",
     description: "用于首页直达 WhatsApp 按钮；请填写含国家码的真实号码，例如 +8613800000000",
   },
+  line_chat_url: {
+    label: "LINE 聊天链接",
+    description:
+      "用于客户订单页直达 LINE；填写 LINE 加好友或聊天网址，例如 https://line.me/ti/p/your-id",
+  },
   home_show_history: {
     label: "显示发展历程",
     description: "默认隐藏；打开后在首页展示 Our journey。",
@@ -45,7 +50,7 @@ const SETTING_COPY: Record<string, { label: string; description: string }> = {
   },
   reference_currency: {
     label: "参考币种",
-    description: "页面估算给印度客户参考",
+    description: "前台报价与付款统一使用 USD",
   },
 };
 

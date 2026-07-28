@@ -21,14 +21,6 @@ export function formatUsd(value: number, options?: Intl.NumberFormatOptions) {
   }).format(value);
 }
 
-export function formatInr(value: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 export function serializeJsonLd(value: unknown) {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }

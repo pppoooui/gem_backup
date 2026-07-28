@@ -8,6 +8,7 @@ import {
   Gauge,
   Globe2,
   LayoutDashboard,
+  Link2,
   MonitorSmartphone,
   MessagesSquare,
   PackagePlus,
@@ -33,6 +34,7 @@ const NAV_LINKS: { icon: LucideIcon; label: string; href: string }[] = [
   { icon: MessagesSquare, label: "客户询盘", href: "/admin/inquiries" },
   { icon: ClipboardList, label: "订单管理", href: "/admin/orders" },
   { icon: WalletCards, label: "收款方式", href: "/admin/payment-methods" },
+  { icon: Link2, label: "自定义付款链接", href: "/admin/payment-links" },
   { icon: Gauge, label: "网站检查", href: "/admin/status" },
   { icon: MonitorSmartphone, label: "手机预览", href: "/admin/preview" },
   { icon: Settings, label: "系统设置", href: "/admin/settings" },
@@ -97,10 +99,11 @@ export function AdminDashboard({
               打开前台
             </Link>
             <Link
-              href="/admin/products"
-              className="inline-flex h-10 items-center rounded-md bg-[#003f4b] px-4 text-sm font-semibold text-white"
+              href="/admin/payment-links"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-[#003f4b] px-4 text-sm font-semibold text-white"
             >
-              新增商品
+              <Link2 className="size-4" />
+              生成付款链接
             </Link>
           </div>
         </header>

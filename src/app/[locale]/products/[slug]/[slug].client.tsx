@@ -4,10 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { usdInrRate } from "@/data/products";
 import { getCartLines, setCartLines } from "@/lib/cart-store";
 import type { Locale, Product } from "@/types/domain";
-import { cn, formatInr, formatUsd, serializeJsonLd } from "@/lib/utils";
+import { cn, formatUsd, serializeJsonLd } from "@/lib/utils";
 import {
   ArrowLeft,
   Factory,
@@ -228,9 +227,7 @@ export default function ProductDetailPage({
                       <span className="text-xs font-normal text-slate-400">
                         {t.perPiece}
                       </span>
-                      <span className="block text-xs font-normal text-slate-400">
-                        ≈ {formatInr(tier.priceUsd * usdInrRate)}
-                      </span>
+                      <span className="block text-xs font-normal text-slate-400">USD</span>
                     </span>
                   </div>
                 ))}

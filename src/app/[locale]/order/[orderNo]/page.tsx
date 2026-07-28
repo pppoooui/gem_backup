@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 import { PUBLIC_SITE_NAME } from "@/lib/site-config";
 import type { LucideIcon } from "lucide-react";
-import { usdInrRate } from "@/data/products";
 import { getPersistedOrderByToken } from "@/lib/orders";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
-import { formatInr, formatUsd } from "@/lib/utils";
+import { getStorefrontSettings } from "@/lib/storefront-settings";
+import { formatUsd } from "@/lib/utils";
 import type { Locale, PaymentProvider } from "@/types/domain";
 import { OrderLivePanel } from "@/components/orders/order-live-panel";
 
@@ -43,6 +43,7 @@ const copy = {
     total: "Estimated total",
     note: "Buyer note",
     whatsapp: "WhatsApp",
+    line: "LINE",
     nextSteps: "Next steps",
     nextOne: "Sales confirms stock batch and packing.",
     nextTwo: "Final PI includes freight and bank details.",
@@ -67,6 +68,7 @@ const copy = {
     total: "预估合计",
     note: "买家备注",
     whatsapp: "WhatsApp",
+    line: "LINE",
     nextSteps: "下一步",
     nextOne: "销售确认库存批次和包装。",
     nextTwo: "最终 PI 包含运费和银行信息。",
@@ -108,7 +110,6 @@ export default async function OrderPage({
   const { token } = await searchParams;
   const t = copy[locale] ?? copy.en;
   const order = token ? await getPersistedOrderByToken(orderNo, token) : null;
-  const whatsappNumber = process.env.WHATSAPP_VENDOR_PHONE_NUMBER;
 
   if (!order) {
     return (
@@ -132,7 +133,10 @@ export default async function OrderPage({
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(order.createdAt));
-  const enabledPaymentMethods = await getEnabledPaymentMethods();
+  const [enabledPaymentMethods, storefrontSettings] = await Promise.all([
+    getEnabledPaymentMethods(),
+    getStorefrontSettings(),
+  ]);
   const selectedPaymentName =
     enabledPaymentMethods.find(
       (method) => method.provider === order.selectedPaymentProvider,
@@ -145,17 +149,30 @@ export default async function OrderPage({
           <Link href={`/${locale}`} className="text-2xl font-bold text-[#002b35]">
             {PUBLIC_SITE_NAME}
           </Link>
-          <Link
-            href={
-              whatsappNumber
-                ? `https://wa.me/${whatsappNumber.replace(/\D/g, "")}`
-                : `/${locale}/contact`
-            }
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#005466]"
-          >
-            <MessageCircle className="size-4" />
-            {t.whatsapp}
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href={
+                storefrontSettings.whatsappNumber
+                  ? `https://wa.me/${storefrontSettings.whatsappNumber.replace(/\D/g, "")}`
+                  : `/${locale}/contact`
+              }
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#005466]"
+            >
+              <MessageCircle className="size-4" />
+              {t.whatsapp}
+            </Link>
+            {storefrontSettings.lineUrl && (
+              <a
+                href={storefrontSettings.lineUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700"
+              >
+                <MessageCircle className="size-4" />
+                {t.line}
+              </a>
+            )}
+          </div>
         </div>
       </header>
 
@@ -193,8 +210,8 @@ export default async function OrderPage({
               <p>{order.customer.contactName}</p>
               <p>{order.customer.email}</p>
               <p>{order.customer.whatsapp}</p>
-              {order.customer.gstin && <p>GSTIN: {order.customer.gstin}</p>}
-              {order.customer.iec && <p>IEC: {order.customer.iec}</p>}
+              {order.customer.gstin && <p>Tax / VAT ID: {order.customer.gstin}</p>}
+              {order.customer.iec && <p>Import / Export ID: {order.customer.iec}</p>}
             </InfoBlock>
             <InfoBlock icon={Truck} title={t.shipping}>
               <p>{order.customer.addressLine1}</p>
@@ -253,6 +270,8 @@ export default async function OrderPage({
             customerName={order.customer.contactName}
             initialStatus={order.status}
             initialTotal={order.totalUsd}
+            whatsappNumber={storefrontSettings.whatsappNumber}
+            lineUrl={storefrontSettings.lineUrl}
           />
         </div>
 
@@ -268,9 +287,7 @@ export default async function OrderPage({
                   <span className="font-semibold">{t.total}</span>
                   <span className="text-right text-xl font-semibold text-[#002b35]">
                     {order.status === "pending_quote" ? "To confirm" : formatUsd(order.totalUsd)}
-                    <span className="block text-sm font-normal text-slate-500">
-                      ≈ {formatInr(order.totalUsd * usdInrRate)}
-                    </span>
+                    <span className="block text-sm font-normal text-slate-500">USD</span>
                   </span>
                 </div>
               </div>

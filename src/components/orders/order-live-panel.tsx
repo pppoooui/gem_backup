@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, CreditCard, MessageCircle, Send } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Check,
+  CreditCard,
+  ExternalLink,
+  MessageCircle,
+  Send,
+} from "lucide-react";
 import type { Locale, OrderStatus } from "@/types/domain";
 import type { OrderMessage } from "@/lib/order-messages-server";
 import { cn, formatUsd } from "@/lib/utils";
@@ -30,6 +37,8 @@ export function OrderLivePanel({
   customerName,
   initialStatus,
   initialTotal,
+  whatsappNumber,
+  lineUrl,
 }: {
   locale: Locale;
   orderNo: string;
@@ -37,6 +46,8 @@ export function OrderLivePanel({
   customerName: string;
   initialStatus: OrderStatus;
   initialTotal: number;
+  whatsappNumber?: string;
+  lineUrl?: string;
 }) {
   const zh = locale === "zh";
   const [status, setStatus] = useState<OrderStatus>(initialStatus);
@@ -45,7 +56,9 @@ export function OrderLivePanel({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
+  const [targetPrice, setTargetPrice] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     const [orderResponse, chatResponse] = await Promise.all([
@@ -74,19 +87,56 @@ export function OrderLivePanel({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function sendMessage(event: React.FormEvent) {
-    event.preventDefault();
-    if (!message.trim()) return;
+  async function postMessage(nextMessage: string) {
+    if (!nextMessage.trim()) return false;
     setSending(true);
     const response = await fetch(`/api/orders/${orderNo}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, senderName: customerName, message }),
+      body: JSON.stringify({
+        token,
+        senderName: customerName,
+        message: nextMessage,
+      }),
     });
     setSending(false);
     if (response.ok) {
-      setMessage("");
       await refresh();
+      return true;
+    }
+    return false;
+  }
+
+  async function sendMessage(event: React.FormEvent) {
+    event.preventDefault();
+    if (await postMessage(message)) {
+      setMessage("");
+    }
+  }
+
+  async function requestPriceReview() {
+    const price = Number(targetPrice);
+    if (!Number.isFinite(price) || price <= 0) {
+      setNotice(
+        zh
+          ? "请输入有效的美元目标总价。"
+          : "Enter a valid target total in USD.",
+      );
+      return;
+    }
+    setNotice("");
+    const requestMessage = zh
+      ? `价格协商：我希望订单 ${orderNo} 的目标总价为 ${formatUsd(price)}，请客服确认。`
+      : `Price request: My target total for order ${orderNo} is ${formatUsd(price)}. Please review.`;
+    if (await postMessage(requestMessage)) {
+      setTargetPrice("");
+      setNotice(
+        zh
+          ? "目标价已发送，客服确认后正式报价会自动更新。"
+          : "Target price sent. The official quote will update after sales confirms it.",
+      );
+    } else {
+      setNotice(zh ? "发送失败，请重试。" : "Unable to send. Please try again.");
     }
   }
 
@@ -150,6 +200,81 @@ export function OrderLivePanel({
         </section>
       ) : null}
 
+      <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <BadgeDollarSign className="mt-0.5 size-5 shrink-0 text-[#005466]" />
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold">
+              {zh ? "在线协商价格" : "Negotiate the price online"}
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              {zh
+                ? "客户提交目标美元总价，客服可在后台修改正式报价；客户不能直接改动已确认金额。"
+                : "Submit a target total in USD. Sales can revise the official quote in the admin panel."}
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <label className="flex h-11 min-w-0 flex-1 items-center rounded-md border border-slate-200 bg-white px-3 focus-within:border-[#005466]">
+                <span className="mr-2 text-sm text-slate-400">US$</span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={targetPrice}
+                  onChange={(event) => setTargetPrice(event.target.value)}
+                  placeholder={zh ? "输入目标总价" : "Target order total"}
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={requestPriceReview}
+                disabled={sending}
+                className="h-11 rounded-md bg-[#003f4b] px-4 text-sm font-semibold text-white disabled:bg-slate-300"
+              >
+                {zh ? "提交目标价" : "Send target price"}
+              </button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => messageInputRef.current?.focus()}
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-semibold text-[#005466]"
+              >
+                <MessageCircle className="size-4" />
+                {zh ? "站内聊天" : "On-site chat"}
+              </button>
+              {whatsappNumber && (
+                <a
+                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    zh
+                      ? `你好，我想协商订单 ${orderNo} 的价格。`
+                      : `Hello, I would like to discuss the price for order ${orderNo}.`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-700"
+                >
+                  WhatsApp
+                  <ExternalLink className="size-3.5" />
+                </a>
+              )}
+              {lineUrl && (
+                <a
+                  href={lineUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-emerald-200 bg-white px-3 text-sm font-semibold text-emerald-700"
+                >
+                  LINE
+                  <ExternalLink className="size-3.5" />
+                </a>
+              )}
+            </div>
+            {notice && <p className="mt-3 text-sm text-[#005466]">{notice}</p>}
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-md border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
           <MessageCircle className="size-5 text-[#005466]" />
@@ -170,7 +295,7 @@ export function OrderLivePanel({
           <div ref={bottomRef} />
         </div>
         <form className="flex gap-2 border-t border-slate-100 p-4" onSubmit={sendMessage}>
-          <input value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} className="h-11 min-w-0 flex-1 border border-slate-200 px-3 text-sm outline-none focus:border-[#005466]" placeholder={zh ? "输入消息..." : "Type a message..."} />
+          <input ref={messageInputRef} value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} className="h-11 min-w-0 flex-1 border border-slate-200 px-3 text-sm outline-none focus:border-[#005466]" placeholder={zh ? "输入消息..." : "Type a message..."} />
           <button disabled={sending || !message.trim()} className="grid size-11 place-items-center bg-[#003f4b] text-white disabled:bg-slate-300" aria-label={zh ? "发送" : "Send"}>
             <Send className="size-4" />
           </button>

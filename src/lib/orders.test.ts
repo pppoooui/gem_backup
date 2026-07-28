@@ -76,7 +76,7 @@ describe("checkout orders", () => {
     expect(getOrderByToken(order.orderNo, "wrong-token")).toBeNull();
   });
 
-  it("rejects empty carts and India checkout fields that cannot ship", () => {
+  it("rejects empty carts and checkout fields that cannot ship", () => {
     resetOrderStoreForTests();
 
     expect(() =>
@@ -91,10 +91,10 @@ describe("checkout orders", () => {
         ...checkoutInput,
         customer: {
           ...checkoutInput.customer,
-          pinCode: "3020",
+          pinCode: "12",
         },
       }),
-    ).toThrow("PIN code");
+    ).toThrow("Postal code");
   });
 
   it("accepts international postal codes outside India", () => {

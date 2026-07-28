@@ -200,7 +200,7 @@ export const paymentMethods: PaymentMethod[] = [
     name: "XTransfer",
     enabled: true,
     currencies: ["USD"],
-    countries: ["IN", "Global"],
+    countries: ["Global"],
     minAmountUsd: 100,
   },
   {
@@ -208,8 +208,8 @@ export const paymentMethods: PaymentMethod[] = [
     provider: "worldfirst",
     name: "WorldFirst",
     enabled: true,
-    currencies: ["USD", "EUR"],
-    countries: ["IN", "Global"],
+    currencies: ["USD"],
+    countries: ["Global"],
     minAmountUsd: 100,
   },
   {
@@ -218,7 +218,7 @@ export const paymentMethods: PaymentMethod[] = [
     name: "Airwallex",
     enabled: false,
     currencies: ["USD"],
-    countries: ["IN", "Global"],
+    countries: ["Global"],
     minAmountUsd: 150,
   },
   {
@@ -226,8 +226,8 @@ export const paymentMethods: PaymentMethod[] = [
     provider: "wise",
     name: "Wise",
     enabled: true,
-    currencies: ["USD", "EUR"],
-    countries: ["IN", "Global"],
+    currencies: ["USD"],
+    countries: ["Global"],
     minAmountUsd: 100,
   },
   {

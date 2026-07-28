@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { usdInrRate } from "@/data/products";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { getPublishedProducts } from "@/lib/products-supabase";
 import { getStorefrontSettings } from "@/lib/storefront-settings";
@@ -99,10 +98,9 @@ export async function GET() {
       configured: waConfigured,
       directLinkConfigured,
     },
-    exchangeRate: {
-      status: usdInrRate > 0 ? "ok" : "error",
-      pair: "USD/INR",
-      rate: usdInrRate,
+    currency: {
+      status: "ok",
+      code: "USD",
     },
     paymentMethods: {
       status: enabledPaymentMethods.length > 0 ? "ok" : "error",

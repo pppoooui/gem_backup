@@ -141,33 +141,23 @@ type OrderStore = {
   orders: Map<string, CheckoutOrder>;
 };
 
-const checkoutCustomerSchema = z
-  .object({
-    companyName: z.string().trim().min(2, "Company name is required").max(160),
-    contactName: z.string().trim().min(2, "Contact name is required").max(120),
-    whatsapp: z.string().trim().min(8, "WhatsApp is required").max(40),
-    email: z.string().trim().email("Email is invalid").max(254),
-    country: z.string().trim().min(2, "Country is required").max(80),
-    city: z.string().trim().min(2, "City is required").max(100),
-    pinCode: z.string().trim().min(3, "Postal code is required").max(16),
-    addressLine1: z
-      .string()
-      .trim()
-      .min(5, "Shipping address is required")
-      .max(300),
-    landmark: z.string().trim().max(160).optional(),
-    gstin: z.string().trim().max(32).optional(),
-    iec: z.string().trim().max(32).optional(),
-  })
-  .superRefine((customer, context) => {
-    if (/^(india|in)$/i.test(customer.country) && !/^\d{6}$/.test(customer.pinCode)) {
-      context.addIssue({
-        code: "custom",
-        path: ["pinCode"],
-        message: "PIN code must be 6 digits for India shipping",
-      });
-    }
-  });
+const checkoutCustomerSchema = z.object({
+  companyName: z.string().trim().min(2, "Company name is required").max(160),
+  contactName: z.string().trim().min(2, "Contact name is required").max(120),
+  whatsapp: z.string().trim().min(8, "WhatsApp is required").max(40),
+  email: z.string().trim().email("Email is invalid").max(254),
+  country: z.string().trim().min(2, "Country is required").max(80),
+  city: z.string().trim().min(2, "City is required").max(100),
+  pinCode: z.string().trim().min(3, "Postal code is required").max(20),
+  addressLine1: z
+    .string()
+    .trim()
+    .min(5, "Shipping address is required")
+    .max(300),
+  landmark: z.string().trim().max(160).optional(),
+  gstin: z.string().trim().max(64).optional(),
+  iec: z.string().trim().max(64).optional(),
+});
 
 const checkoutOrderInputSchema = z.object({
   locale: z.enum(["en", "zh"]),
@@ -798,7 +788,7 @@ function mapSupabaseOrder(row: SupabaseOrderRow): CheckoutOrder {
       contactName: customer.contact_name ?? customer.name ?? "Unknown contact",
       whatsapp: customer.whatsapp ?? "",
       email: customer.email ?? "",
-      country: customer.country ?? "India",
+      country: customer.country ?? "",
       city: customer.city ?? "",
       pinCode: customer.pin_code ?? "",
       addressLine1: customer.shipping_address ?? "",

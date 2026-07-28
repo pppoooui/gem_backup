@@ -3,9 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { usdInrRate } from "@/data/products";
 import { clearCart, getCartLines, setCartLines } from "@/lib/cart-store";
-import { formatInr, formatUsd } from "@/lib/utils";
+import { formatUsd } from "@/lib/utils";
 import type { CartLine, Locale, Product } from "@/types/domain";
 import {
   ArrowLeft,
@@ -237,9 +236,7 @@ export default function CartPage({
                   </div>
                   <p className="text-sm font-semibold text-slate-950 tabular-nums">
                     {formatUsd(line.lineTotalUsd)}
-                    <span className="block text-xs font-normal text-slate-400">
-                      ≈ {formatInr(line.lineTotalUsd * usdInrRate)}
-                    </span>
+                    <span className="block text-xs font-normal text-slate-400">USD</span>
                   </p>
                 </div>
               </div>
@@ -268,9 +265,7 @@ export default function CartPage({
             </span>
             <span className="text-lg font-bold text-slate-950 tabular-nums">
               {formatUsd(subtotalUsd)}
-              <span className="block text-xs font-normal text-slate-400">
-                ≈ {formatInr(subtotalUsd * usdInrRate)}
-              </span>
+              <span className="block text-xs font-normal text-slate-400">USD</span>
             </span>
           </div>
           <Link

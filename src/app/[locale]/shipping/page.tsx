@@ -31,7 +31,7 @@ export default async function ShippingPage({ params }: Props) {
             <h1 className="text-3xl font-semibold">Shipping & Logistics</h1>
           </div>
           <p className="mt-4 text-slate-600 leading-relaxed">
-            We ship from our warehouse in Jaipur (Rajasthan, India) to customers worldwide. Every shipment is insured and packaged to survive international transit.
+            We ship internationally from our designated factory or warehouse. Every shipment is packaged for international transit, with insurance available according to the selected carrier and service.
           </p>
 
           <div className="mt-10 grid gap-5 md:grid-cols-2">

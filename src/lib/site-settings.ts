@@ -14,6 +14,13 @@ export const managedSiteSettings: ManagedSiteSetting[] = [
     descriptionEn: "E.164 number used by the public WhatsApp button, for example +8613800000000.",
   },
   {
+    key: "line_chat_url",
+    value: "",
+    labelEn: "LINE chat URL",
+    descriptionEn:
+      "Public LINE add-friend or chat URL, for example https://line.me/ti/p/your-id.",
+  },
+  {
     key: "home_show_history",
     value: "false",
     labelEn: "Show company journey",
@@ -60,9 +67,9 @@ export const managedSiteSettings: ManagedSiteSetting[] = [
   },
   {
     key: "reference_currency",
-    value: "INR",
+    value: "USD",
     labelEn: "Reference currency",
-    descriptionEn: "Reference currency for India buyers.",
+    descriptionEn: "Use USD across customer-facing quotes and payments.",
   },
 ];
 

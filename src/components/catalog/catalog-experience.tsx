@@ -8,6 +8,7 @@ import {
   Box,
   Check,
   ChevronDown,
+  ChevronUp,
   Factory,
   Grid2X2,
   Heart,
@@ -24,8 +25,13 @@ import {
   X,
 } from "lucide-react";
 import { PUBLIC_SITE_NAME } from "@/lib/site-config";
-import { usdInrRate } from "@/data/products";
 import { clearCart, getCartLines, setCartLines } from "@/lib/cart-store";
+import {
+  filterCatalogProducts,
+  normalizeCatalogColor,
+  sortCatalogProducts,
+  type CatalogSort,
+} from "@/lib/catalog-filters";
 import type {
   CartLine,
   Locale,
@@ -34,7 +40,7 @@ import type {
   Product,
   ProductVariant,
 } from "@/types/domain";
-import { cn, formatInr, formatUsd } from "@/lib/utils";
+import { cn, formatUsd } from "@/lib/utils";
 
 const copy = {
   en: {
@@ -45,6 +51,10 @@ const copy = {
     filters: "Filters",
     clear: "Clear all",
     sort: "Sort by: Best match",
+    searchShape: "Search shape",
+    showMore: "Show more",
+    showLess: "Show less",
+    noProducts: "No products match these filters.",
     shape: "Shape",
     color: "Color",
     size: "Size",
@@ -63,11 +73,12 @@ const copy = {
     whatsappNo: "WhatsApp number",
     email: "Email",
     city: "City",
-    pinCode: "PIN code",
+    country: "Country / Region",
+    pinCode: "Postal code",
     address: "Shipping address",
-    landmark: "Landmark",
-    gstin: "GSTIN",
-    iec: "IEC",
+    landmark: "Address details",
+    gstin: "Tax / VAT ID",
+    iec: "Import / Export ID",
     note: "Note",
     submitOrder: "Submit PI Request",
     submitting: "Submitting...",
@@ -84,6 +95,10 @@ const copy = {
     filters: "筛选",
     clear: "清空",
     sort: "排序：最佳匹配",
+    searchShape: "搜索形状",
+    showMore: "展开更多",
+    showLess: "收起",
+    noProducts: "没有符合当前筛选条件的商品。",
     shape: "形状",
     color: "颜色",
     size: "尺寸",
@@ -102,11 +117,12 @@ const copy = {
     whatsappNo: "WhatsApp 号码",
     email: "邮箱",
     city: "城市",
-    pinCode: "印度 PIN 邮编",
+    country: "国家 / 地区",
+    pinCode: "邮政编码",
     address: "收货地址",
-    landmark: "地标",
-    gstin: "GSTIN",
-    iec: "IEC",
+    landmark: "地址补充",
+    gstin: "税号 / VAT（可选）",
+    iec: "进出口编号（可选）",
     note: "备注",
     submitOrder: "提交 PI 请求",
     submitting: "提交中...",
@@ -140,26 +156,28 @@ const trustItems = [
   },
 ];
 
-const shapeFilters = [
-  ["Round", "2,450"],
-  ["Princess", "1,280"],
-  ["Cushion", "980"],
-  ["Oval", "1,120"],
-  ["Pear", "1,050"],
+const shapeOptions = [
+  "Round",
+  "Princess",
+  "Cushion",
+  "Oval",
+  "Pear",
+  "Heart",
+  "Marquise",
 ] as const;
 
-const colors = [
-  "#f8fafc",
-  "#d6d7d8",
-  "#efd55f",
-  "#d6b06d",
-  "#efafd0",
-  "#9f74d8",
-  "#b51f2e",
-  "#3151d3",
-  "#079455",
-  "#09090b",
-];
+const colorOptions = [
+  { name: "Colorless", value: "#f8fafc" },
+  { name: "Gray", value: "#d6d7d8" },
+  { name: "Yellow", value: "#efd55f" },
+  { name: "Champagne", value: "#d6b06d" },
+  { name: "Pink", value: "#efafd0" },
+  { name: "Purple", value: "#9f74d8" },
+  { name: "Red", value: "#b51f2e" },
+  { name: "Blue", value: "#3151d3" },
+  { name: "Green", value: "#079455" },
+  { name: "Black", value: "#09090b" },
+] as const;
 
 function lineProduct(line: CartLine, products: Product[]) {
   const product = products.find((item) => item.id === line.productId);
@@ -195,9 +213,9 @@ type CheckoutFormState = {
 const defaultCheckoutForm: CheckoutFormState = {
   companyName: "",
   contactName: "",
-  whatsapp: "+91 ",
+  whatsapp: "",
   email: "",
-  country: "India",
+  country: "",
   city: "",
   pinCode: "",
   addressLine1: "",
@@ -225,6 +243,16 @@ export function CatalogExperience({
   const [isCartHydrated, setIsCartHydrated] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [isCartPanelOpen, setIsCartPanelOpen] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [shapeSearch, setShapeSearch] = useState("");
+  const [selectedShapes, setSelectedShapes] = useState<string[]>(["Round"]);
+  const [selectedColors, setSelectedColors] = useState<string[]>(["Colorless"]);
+  const [selectedGrades, setSelectedGrades] = useState<string[]>(["3A", "5A"]);
+  const [selectedCuts, setSelectedCuts] = useState<string[]>([]);
+  const [minSize, setMinSize] = useState("1");
+  const [maxSize, setMaxSize] = useState("12");
+  const [sort, setSort] = useState<CatalogSort>("best_match");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- restore browser storage after hydration
@@ -242,6 +270,51 @@ export function CatalogExperience({
       return variant ? sum + lineTotal(variant, line.quantity) : sum;
     }, 0);
   }, [cart, products]);
+
+  const filteredProducts = useMemo(() => {
+    const filtered = filterCatalogProducts(products, {
+      query,
+      shapes: selectedShapes,
+      colors: selectedColors,
+      grades: selectedGrades,
+      cuts: selectedCuts,
+      minSize: minSize === "" ? 0 : Number(minSize),
+      maxSize: maxSize === "" ? Number.POSITIVE_INFINITY : Number(maxSize),
+    });
+    return sortCatalogProducts(filtered, sort);
+  }, [
+    maxSize,
+    minSize,
+    products,
+    query,
+    selectedColors,
+    selectedCuts,
+    selectedGrades,
+    selectedShapes,
+    sort,
+  ]);
+
+  function toggleValue(
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    value: string,
+  ) {
+    setter((current) =>
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setShapeSearch("");
+    setSelectedShapes([]);
+    setSelectedColors([]);
+    setSelectedGrades([]);
+    setSelectedCuts([]);
+    setMinSize("");
+    setMaxSize("");
+  }
 
   function addProduct(product: Product, variantId: string, grade: "3A" | "5A") {
     const variant = product.variants.find((item) => item.id === variantId) ?? product.variants[0];
@@ -316,6 +389,8 @@ export function CatalogExperience({
             <input
               className="h-11 w-full rounded-md border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-[#005466] focus:ring-4 focus:ring-cyan-950/5"
               placeholder={t.search}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
             />
           </div>
           <div className="ml-auto flex items-center gap-4 text-sm font-medium">
@@ -379,129 +454,54 @@ export function CatalogExperience({
         )}
       >
         <aside className="hidden min-h-[calc(100vh-134px)] border-r border-slate-200 bg-white lg:block">
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-7">
-            <h2 className="text-xl font-semibold">{t.filters}</h2>
-            <button className="text-xs font-medium text-[#005466]">
-              {t.clear}
-            </button>
-          </div>
-          <div className="space-y-7 px-6 py-6">
-            <FilterGroup title={t.shape}>
-              <input
-                className="h-9 w-full rounded-md border border-slate-200 px-3 text-sm outline-none"
-                placeholder="Search shape"
-              />
-              <div className="space-y-3 pt-2">
-                {shapeFilters.map(([shape, count], index) => (
-                  <label
-                    key={shape}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "grid size-4 place-items-center rounded-[3px] border border-slate-300",
-                          index === 0 && "border-[#003f4b] bg-[#003f4b]",
-                        )}
-                      >
-                        {index === 0 && <Check className="size-3 text-white" />}
-                      </span>
-                      {shape}
-                    </span>
-                    <span className="text-slate-500">{count}</span>
-                  </label>
-                ))}
-              </div>
-              <button className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#005466]">
-                Show more
-                <ChevronDown className="size-3.5" />
-              </button>
-            </FilterGroup>
-
-            <FilterGroup title={t.color}>
-              <div className="grid grid-cols-6 gap-3">
-                {colors.map((color) => (
-                  <button
-                    key={color}
-                    className="size-6 rounded-full border border-slate-300 shadow-sm"
-                    style={{ backgroundColor: color }}
-                    aria-label={`Color ${color}`}
-                  />
-                ))}
-              </div>
-              <button className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#005466]">
-                Show more
-                <ChevronDown className="size-3.5" />
-              </button>
-            </FilterGroup>
-
-            <FilterGroup title={t.size}>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                <input
-                  className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
-                  defaultValue="1"
-                />
-                <span className="text-xs text-slate-500">to</span>
-                <input
-                  className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
-                  defaultValue="12"
-                />
-              </div>
-              <div className="mt-4 h-1.5 rounded-full bg-slate-200">
-                <div className="h-full w-[92%] rounded-full bg-[#005466]" />
-              </div>
-            </FilterGroup>
-
-            <FilterGroup title={t.grade}>
-              {["5A", "3A", "2A"].map((grade, index) => (
-                <label key={grade} className="mt-3 flex items-center gap-2 text-sm">
-                  <span
-                    className={cn(
-                      "grid size-4 place-items-center rounded-[3px] border border-slate-300",
-                      index === 0 && "border-[#003f4b] bg-[#003f4b]",
-                    )}
-                  >
-                    {index === 0 && <Check className="size-3 text-white" />}
-                  </span>
-                  {grade}
-                </label>
-              ))}
-            </FilterGroup>
-
-            <FilterGroup title={t.cut}>
-              {["Excellent", "Very Good"].map((cut, index) => (
-                <label key={cut} className="mt-3 flex items-center gap-2 text-sm">
-                  <span
-                    className={cn(
-                      "grid size-4 place-items-center rounded-[3px] border border-slate-300",
-                      index === 0 && "border-[#003f4b] bg-[#003f4b]",
-                    )}
-                  >
-                    {index === 0 && <Check className="size-3 text-white" />}
-                  </span>
-                  {cut}
-                </label>
-              ))}
-            </FilterGroup>
-          </div>
+          <CatalogFilterPanel
+            locale={locale}
+            products={products}
+            shapeSearch={shapeSearch}
+            setShapeSearch={setShapeSearch}
+            selectedShapes={selectedShapes}
+            selectedColors={selectedColors}
+            selectedGrades={selectedGrades}
+            selectedCuts={selectedCuts}
+            minSize={minSize}
+            maxSize={maxSize}
+            setMinSize={setMinSize}
+            setMaxSize={setMaxSize}
+            toggleShape={(value) => toggleValue(setSelectedShapes, value)}
+            toggleColor={(value) => toggleValue(setSelectedColors, value)}
+            toggleGrade={(value) => toggleValue(setSelectedGrades, value)}
+            toggleCut={(value) => toggleValue(setSelectedCuts, value)}
+            clearFilters={clearFilters}
+          />
         </aside>
 
         <section className="min-w-0 bg-[#fbfcfc] px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <button className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium lg:hidden">
+              <button
+                type="button"
+                onClick={() => setIsMobileFiltersOpen(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium lg:hidden"
+              >
                 <SlidersHorizontal className="size-4" />
                 {t.filters}
               </button>
               <p className="text-sm text-slate-500">
-                {products.length.toLocaleString()} {locale === "zh" ? "个商品" : "products"}
+                {filteredProducts.length.toLocaleString()} {locale === "zh" ? "个商品" : "products"}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="inline-flex h-10 items-center justify-between gap-16 rounded-md border border-slate-200 bg-white px-4 text-sm">
-                {t.sort}
-                <ChevronDown className="size-4" />
-              </button>
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as CatalogSort)}
+                aria-label={locale === "zh" ? "商品排序" : "Sort products"}
+                className="h-10 rounded-md border border-slate-200 bg-white px-4 text-sm outline-none focus:border-[#005466]"
+              >
+                <option value="best_match">{t.sort}</option>
+                <option value="size_asc">{locale === "zh" ? "尺寸：从小到大" : "Size: Low to high"}</option>
+                <option value="size_desc">{locale === "zh" ? "尺寸：从大到小" : "Size: High to low"}</option>
+                <option value="name_asc">{locale === "zh" ? "名称：A-Z" : "Name: A-Z"}</option>
+              </select>
               <div className="hidden rounded-md border border-slate-200 bg-white md:flex">
                 <button
                   className={cn(
@@ -526,18 +526,54 @@ export function CatalogExperience({
           </div>
 
           <div className="mb-7 flex flex-wrap gap-3">
-            {["Shape: Round", "Color: Colorless", "Size: 1 - 12 mm", "Grade: 3A / 5A"].map(
-              (item) => (
-                <button
-                  key={item}
-                  className="inline-flex h-9 items-center gap-2 rounded-md bg-slate-100 px-3 text-sm text-slate-700"
-                >
-                  {item}
-                  <X className="size-3.5" />
-                </button>
-              ),
+            {selectedShapes.length > 0 && (
+              <FilterChip
+                label={`${t.shape}: ${selectedShapes.join(" / ")}`}
+                onRemove={() => setSelectedShapes([])}
+              />
             )}
-            <button className="text-sm font-medium text-[#005466]">{t.clear}</button>
+            {selectedColors.length > 0 && (
+              <FilterChip
+                label={`${t.color}: ${selectedColors.join(" / ")}`}
+                onRemove={() => setSelectedColors([])}
+              />
+            )}
+            {(minSize !== "" || maxSize !== "") && (
+              <FilterChip
+                label={`${t.size}: ${minSize || "0"} - ${maxSize || "∞"} mm`}
+                onRemove={() => {
+                  setMinSize("");
+                  setMaxSize("");
+                }}
+              />
+            )}
+            {selectedGrades.length > 0 && (
+              <FilterChip
+                label={`${t.grade}: ${selectedGrades.join(" / ")}`}
+                onRemove={() => setSelectedGrades([])}
+              />
+            )}
+            {selectedCuts.length > 0 && (
+              <FilterChip
+                label={`${t.cut}: ${selectedCuts.join(" / ")}`}
+                onRemove={() => setSelectedCuts([])}
+              />
+            )}
+            {(query ||
+              selectedShapes.length > 0 ||
+              selectedColors.length > 0 ||
+              selectedGrades.length > 0 ||
+              selectedCuts.length > 0 ||
+              minSize !== "" ||
+              maxSize !== "") && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-medium text-[#005466]"
+              >
+                {t.clear}
+              </button>
+            )}
           </div>
 
           <div
@@ -550,7 +586,7 @@ export function CatalogExperience({
                 : "grid-cols-1",
             )}
           >
-            {products.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -561,6 +597,11 @@ export function CatalogExperience({
               />
             ))}
           </div>
+          {filteredProducts.length === 0 && (
+            <div className="rounded-md border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-sm text-slate-500">
+              {t.noProducts}
+            </div>
+          )}
         </section>
 
         {isCartPanelOpen ? (
@@ -580,6 +621,59 @@ export function CatalogExperience({
           </aside>
         ) : null}
       </main>
+      {isMobileFiltersOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/40 lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0"
+            aria-label={locale === "zh" ? "关闭筛选" : "Close filters"}
+            onClick={() => setIsMobileFiltersOpen(false)}
+          />
+          <aside className="absolute inset-y-0 left-0 w-[min(88vw,340px)] overflow-y-auto bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-lg font-semibold">{t.filters}</h2>
+              <button
+                type="button"
+                onClick={() => setIsMobileFiltersOpen(false)}
+                aria-label={locale === "zh" ? "关闭筛选" : "Close filters"}
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <CatalogFilterPanel
+              locale={locale}
+              products={products}
+              shapeSearch={shapeSearch}
+              setShapeSearch={setShapeSearch}
+              selectedShapes={selectedShapes}
+              selectedColors={selectedColors}
+              selectedGrades={selectedGrades}
+              selectedCuts={selectedCuts}
+              minSize={minSize}
+              maxSize={maxSize}
+              setMinSize={setMinSize}
+              setMaxSize={setMaxSize}
+              toggleShape={(value) => toggleValue(setSelectedShapes, value)}
+              toggleColor={(value) => toggleValue(setSelectedColors, value)}
+              toggleGrade={(value) => toggleValue(setSelectedGrades, value)}
+              toggleCut={(value) => toggleValue(setSelectedCuts, value)}
+              clearFilters={clearFilters}
+              compact
+            />
+            <div className="sticky bottom-0 border-t border-slate-100 bg-white p-4">
+              <button
+                type="button"
+                onClick={() => setIsMobileFiltersOpen(false)}
+                className="h-11 w-full rounded-md bg-[#003f4b] text-sm font-semibold text-white"
+              >
+                {locale === "zh"
+                  ? `查看 ${filteredProducts.length} 个商品`
+                  : `View ${filteredProducts.length} products`}
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }
@@ -587,18 +681,306 @@ export function CatalogExperience({
 function FilterGroup({
   title,
   children,
+  defaultOpen = true,
 }: {
   title: string;
   children: React.ReactNode;
+  defaultOpen?: boolean;
 }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <section className="border-b border-slate-100 pb-6 last:border-0">
-      <div className="mb-4 flex items-center justify-between">
+      <button
+        type="button"
+        className={cn(
+          "flex w-full items-center justify-between text-left",
+          isOpen && "mb-4",
+        )}
+        onClick={() => setIsOpen((current) => !current)}
+        aria-expanded={isOpen}
+      >
         <h3 className="text-sm font-semibold">{title}</h3>
-        <ChevronDown className="size-4 text-slate-400" />
-      </div>
-      {children}
+        {isOpen ? (
+          <ChevronUp className="size-4 text-slate-400" />
+        ) : (
+          <ChevronDown className="size-4 text-slate-400" />
+        )}
+      </button>
+      {isOpen ? children : null}
     </section>
+  );
+}
+
+function FilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      className="inline-flex h-9 items-center gap-2 rounded-md bg-slate-100 px-3 text-sm text-slate-700 transition hover:bg-slate-200"
+    >
+      {label}
+      <X className="size-3.5" />
+    </button>
+  );
+}
+
+function CatalogFilterPanel({
+  locale,
+  products,
+  shapeSearch,
+  setShapeSearch,
+  selectedShapes,
+  selectedColors,
+  selectedGrades,
+  selectedCuts,
+  minSize,
+  maxSize,
+  setMinSize,
+  setMaxSize,
+  toggleShape,
+  toggleColor,
+  toggleGrade,
+  toggleCut,
+  clearFilters,
+  compact = false,
+}: {
+  locale: Locale;
+  products: Product[];
+  shapeSearch: string;
+  setShapeSearch: (value: string) => void;
+  selectedShapes: string[];
+  selectedColors: string[];
+  selectedGrades: string[];
+  selectedCuts: string[];
+  minSize: string;
+  maxSize: string;
+  setMinSize: (value: string) => void;
+  setMaxSize: (value: string) => void;
+  toggleShape: (value: string) => void;
+  toggleColor: (value: string) => void;
+  toggleGrade: (value: string) => void;
+  toggleCut: (value: string) => void;
+  clearFilters: () => void;
+  compact?: boolean;
+}) {
+  const t = copy[locale];
+  const [showAllShapes, setShowAllShapes] = useState(false);
+  const normalizedShapeSearch = shapeSearch.trim().toLowerCase();
+  const matchingShapes = shapeOptions.filter((shape) =>
+    shape.toLowerCase().includes(normalizedShapeSearch),
+  );
+  const visibleShapes = showAllShapes
+    ? matchingShapes
+    : matchingShapes.slice(0, 5);
+  const availableCuts = Array.from(
+    new Set([...products.map((product) => product.cut), "Very Good"]),
+  );
+
+  return (
+    <>
+      {!compact && (
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-7">
+          <h2 className="text-xl font-semibold">{t.filters}</h2>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs font-medium text-[#005466]"
+          >
+            {t.clear}
+          </button>
+        </div>
+      )}
+      <div className="space-y-7 px-6 py-6">
+        <FilterGroup title={t.shape}>
+          <input
+            className="h-9 w-full rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-[#005466]"
+            placeholder={t.searchShape}
+            value={shapeSearch}
+            onChange={(event) => setShapeSearch(event.target.value)}
+          />
+          <div className="space-y-3 pt-3">
+            {visibleShapes.map((shape) => {
+              const checked = selectedShapes.includes(shape);
+              const count = products.filter(
+                (product) => product.shape === shape,
+              ).length;
+              return (
+                <label
+                  key={shape}
+                  className="flex cursor-pointer items-center justify-between text-sm"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleShape(shape)}
+                      className="size-4 accent-[#003f4b]"
+                    />
+                    {shape}
+                  </span>
+                  <span className="text-slate-500">
+                    {count.toLocaleString()}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          {matchingShapes.length > 5 && (
+            <button
+              type="button"
+              onClick={() => setShowAllShapes((current) => !current)}
+              className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#005466]"
+            >
+              {showAllShapes ? t.showLess : t.showMore}
+              {showAllShapes ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+            </button>
+          )}
+        </FilterGroup>
+
+        <FilterGroup title={t.color}>
+          <div className="grid grid-cols-6 gap-3">
+            {colorOptions.map((color) => {
+              const checked = selectedColors.includes(color.name);
+              const count = products.reduce(
+                (total, product) =>
+                  total +
+                  product.variants.filter(
+                    (variant) =>
+                      normalizeCatalogColor(variant.color) === color.name,
+                  ).length,
+                0,
+              );
+              return (
+                <button
+                  type="button"
+                  key={color.name}
+                  className={cn(
+                    "relative size-7 rounded-full border shadow-sm transition",
+                    checked
+                      ? "border-[#003f4b] ring-2 ring-[#003f4b] ring-offset-2"
+                      : "border-slate-300 hover:scale-110",
+                  )}
+                  style={{ backgroundColor: color.value }}
+                  aria-label={`${color.name}, ${count} ${locale === "zh" ? "个规格" : "variants"}`}
+                  aria-pressed={checked}
+                  title={color.name}
+                  onClick={() => toggleColor(color.name)}
+                >
+                  {checked && (
+                    <Check
+                      className={cn(
+                        "absolute inset-1 size-5",
+                        color.name === "Black" ||
+                          color.name === "Blue" ||
+                          color.name === "Red" ||
+                          color.name === "Green" ||
+                          color.name === "Purple"
+                          ? "text-white"
+                          : "text-slate-900",
+                      )}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </FilterGroup>
+
+        <FilterGroup title={t.size}>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <input
+              type="number"
+              min="0"
+              max="12"
+              step="0.05"
+              aria-label={locale === "zh" ? "最小尺寸" : "Minimum size"}
+              className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
+              value={minSize}
+              onChange={(event) => setMinSize(event.target.value)}
+            />
+            <span className="text-xs text-slate-500">
+              {locale === "zh" ? "至" : "to"}
+            </span>
+            <input
+              type="number"
+              min="0"
+              max="12"
+              step="0.05"
+              aria-label={locale === "zh" ? "最大尺寸" : "Maximum size"}
+              className="h-9 min-w-0 rounded-md border border-slate-200 px-3 text-sm"
+              value={maxSize}
+              onChange={(event) => setMaxSize(event.target.value)}
+            />
+          </div>
+          <div className="mt-4 space-y-2">
+            <input
+              type="range"
+              min="0"
+              max="12"
+              step="0.05"
+              value={minSize || "0"}
+              onChange={(event) => setMinSize(event.target.value)}
+              aria-label={locale === "zh" ? "拖动最小尺寸" : "Minimum size slider"}
+              className="block h-2 w-full accent-[#005466]"
+            />
+            <input
+              type="range"
+              min="0"
+              max="12"
+              step="0.05"
+              value={maxSize || "12"}
+              onChange={(event) => setMaxSize(event.target.value)}
+              aria-label={locale === "zh" ? "拖动最大尺寸" : "Maximum size slider"}
+              className="block h-2 w-full accent-[#005466]"
+            />
+          </div>
+        </FilterGroup>
+
+        <FilterGroup title={t.grade}>
+          {["5A", "3A", "2A"].map((grade) => (
+            <label
+              key={grade}
+              className="mt-3 flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <input
+                type="checkbox"
+                checked={selectedGrades.includes(grade)}
+                onChange={() => toggleGrade(grade)}
+                className="size-4 accent-[#003f4b]"
+              />
+              {grade}
+            </label>
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title={t.cut}>
+          {availableCuts.map((cut) => (
+            <label
+              key={cut}
+              className="mt-3 flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <input
+                type="checkbox"
+                checked={selectedCuts.includes(cut)}
+                onChange={() => toggleCut(cut)}
+                className="size-4 accent-[#003f4b]"
+              />
+              {cut}
+            </label>
+          ))}
+        </FilterGroup>
+      </div>
+    </>
   );
 }
 
@@ -729,9 +1111,7 @@ function ProductCard({
                     minimumFractionDigits: 3,
                     maximumFractionDigits: 3,
                   })}
-                  <span className="block text-xs font-normal text-slate-400">
-                    {formatInr(tier.priceUsd * usdInrRate)}
-                  </span>
+                  <span className="block text-xs font-normal text-slate-400">USD</span>
                 </span>
               </div>
             ))}
@@ -889,7 +1269,7 @@ function CartPanel({
         </p>
         {showPrices ? <>
           <p className="mt-1 text-2xl font-semibold">{formatUsd(subtotal)}</p>
-          <p className="text-sm text-slate-500">≈ {formatInr(subtotal * usdInrRate)}</p>
+          <p className="text-sm text-slate-500">USD</p>
         </> : <p className="mt-1 text-sm font-medium text-[#005466]">
           {locale === "zh" ? "提交后由客服确认价格" : "Price confirmed by sales after submission"}
         </p>}
@@ -1014,6 +1394,12 @@ function CartPanel({
                 required
               />
               <CheckoutInput
+                label={t.country}
+                value={form.country}
+                onChange={(value) => updateForm("country", value)}
+                required
+              />
+              <CheckoutInput
                 label={t.city}
                 value={form.city}
                 onChange={(value) => updateForm("city", value)}
@@ -1023,7 +1409,7 @@ function CartPanel({
                 label={t.pinCode}
                 value={form.pinCode}
                 onChange={(value) => updateForm("pinCode", value)}
-                inputMode="numeric"
+                inputMode="text"
                 required
               />
             </div>

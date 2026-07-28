@@ -22,10 +22,10 @@ type Props = { params: Promise<{ locale: Locale }> };
 const methods = [
   {
     name: "XTransfer",
-    tagline: "Best for Indian buyers importing from abroad",
+    tagline: "Cross-border payment for international buyers",
     details:
-      "Fully licensed cross-border payment platform. Competitive FX rates, local INR settlement via NEFT/RTGS, and real-time payment tracking.",
-    currencies: "USD, EUR, GBP, CNY, INR → INR settlement",
+      "A regulated cross-border payment platform with payment tracking and business verification.",
+    currencies: "Invoice currency: USD",
     timeline: "1–2 business days",
     highlight: true,
   },
@@ -34,7 +34,7 @@ const methods = [
     tagline: "Multi-currency account for global traders",
     details:
       "Hold and convert 40+ currencies. Send payments to suppliers at wholesale FX rates. Ideal for bulk commodity payments.",
-    currencies: "USD, EUR, GBP, AUD, HKD, SGD, JPY + 35 more",
+    currencies: "Invoice currency: USD",
     timeline: "1–2 business days",
     highlight: false,
   },
@@ -43,7 +43,7 @@ const methods = [
     tagline: "All-in-one business account",
     details:
       "Global business account with virtual cards and built-in compliance. Fast cross-border transfers at interbank rates.",
-    currencies: "USD, EUR, GBP, AUD, HKD, SGD, CNY",
+    currencies: "Invoice currency: USD",
     timeline: "Same day for most corridors",
     highlight: false,
   },
@@ -52,7 +52,7 @@ const methods = [
     tagline: "The real exchange rate, always",
     details:
       "Transparent, low-cost international transfers. No hidden markups on exchange rates — you always get the mid-market rate.",
-    currencies: "50+ currencies supported",
+    currencies: "Invoice currency: USD",
     timeline: "Same day to 2 business days",
     highlight: false,
   },
@@ -60,8 +60,8 @@ const methods = [
     name: "Bank Transfer (SWIFT)",
     tagline: "Traditional wire for larger orders",
     details:
-      "Direct SWIFT/TT wire to our Indian export account. Higher fees but unlimited amount — suitable for large bulk orders and LC transactions.",
-    currencies: "USD, EUR, GBP",
+      "Direct SWIFT/TT wire for larger bulk orders. Final beneficiary details are shown only on the approved invoice or secure payment link.",
+    currencies: "Invoice currency: USD",
     timeline: "3–5 business days",
     highlight: false,
   },
@@ -87,8 +87,8 @@ export default async function PaymentPage({ params }: Props) {
           </div>
           <p className="mt-4 text-slate-600 leading-relaxed">
             We support multiple international payment channels so you can
-            settle invoices in USD, EUR, or INR with minimal fees and
-            maximum security. Choose the method that works best for your
+            settle wholesale invoices in USD with clear records and secure
+            payment instructions. Choose the method that works best for your
             business.
           </p>
 
@@ -192,21 +192,16 @@ export default async function PaymentPage({ params }: Props) {
           <div className="mt-10">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
               <CheckCircle2 className="size-5 text-emerald-600" />
-              Accepted Currencies
+              Invoice Currency
             </h2>
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 text-sm">
-              {["USD ($)", "EUR (€)", "GBP (£)", "INR (₹)"].map((c) => (
-                <div
-                  key={c}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-center font-medium text-slate-700"
-                >
-                  {c}
-                </div>
-              ))}
+            <div className="mt-4 max-w-xs text-sm">
+              <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-center font-medium text-slate-700">
+                USD ($)
+              </div>
             </div>
             <p className="mt-3 text-xs text-slate-400">
-              INR pricing is calculated at the prevailing USD/INR rate and
-              confirmed on the Proforma Invoice.
+              All product quotes, custom payment links, and final invoices use
+              United States dollars.
             </p>
           </div>
 
