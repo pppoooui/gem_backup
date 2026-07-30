@@ -16,6 +16,8 @@ const statusFlow: { status: OrderStatus; label: string; tone: string }[] = [
   { status: "paid", label: "已付款", tone: "bg-green-700" },
   { status: "processing", label: "处理中", tone: "bg-indigo-600" },
   { status: "shipped", label: "已发货", tone: "bg-slate-700" },
+  { status: "refund_requested", label: "退款待审核", tone: "bg-amber-700" },
+  { status: "refunded", label: "已同意退款", tone: "bg-rose-700" },
 ];
 
 export function AdminOrderList({ orders }: { orders: AdminOrder[] }) {

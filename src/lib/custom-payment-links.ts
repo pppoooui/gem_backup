@@ -53,6 +53,7 @@ function mapRow(row: Record<string, unknown>): CustomPaymentLink {
   return {
     id: String(row.id),
     token: String(row.public_token),
+    orderNo: String(row.order_no),
     locale: (row.locale === "zh" ? "zh" : "en") as Locale,
     title: String(row.title ?? ""),
     specification: String(row.specification ?? ""),
@@ -91,9 +92,18 @@ export async function createCustomPaymentLink(
 ) {
   const now = new Date().toISOString();
   const token = randomBytes(24).toString("base64url");
+  const fallbackSequence = String(paymentLinkStore().size + 1).padStart(4, "0");
+  const fallbackCustomer =
+    input.customerName
+      ?.trim()
+      .replace(/[^\p{L}\p{N}]+/gu, "")
+      .toUpperCase()
+      .slice(0, 20) || "CUSTOMER";
+  const fallbackOrderNo = `${fallbackCustomer}-${now.slice(0, 10).replaceAll("-", "")}-${fallbackSequence}`;
   const fallback: CustomPaymentLink = {
     id: randomUUID(),
     token,
+    orderNo: fallbackOrderNo,
     ...input,
     status: "active",
     createdAt: now,
@@ -106,9 +116,21 @@ export async function createCustomPaymentLink(
     return fallback;
   }
 
+  const { data: generatedOrderNo, error: orderNoError } = await supabase.rpc(
+    "dfcgem_next_custom_payment_order_no",
+    { customer_name_input: input.customerName || "CUSTOMER" },
+  );
+  if (orderNoError || !generatedOrderNo) {
+    throw new Error(
+      orderNoError?.message ??
+        "Unable to generate order number. Apply migration 0020 first.",
+    );
+  }
+
   const { data, error } = await supabase
     .from("custom_payment_links")
     .insert({
+      order_no: generatedOrderNo,
       public_token: token,
       locale: input.locale,
       title: input.title,

@@ -17,6 +17,8 @@ export type OrderStatus =
   | "packing"
   | "in_transit"
   | "delivered"
+  | "refund_requested"
+  | "refunded"
   | "processing"
   | "shipped"
   | "cancelled";
@@ -26,6 +28,7 @@ export type PaymentProvider =
   | "worldfirst"
   | "airwallex"
   | "wise"
+  | "lianlian"
   | "bank_transfer"
   | "manual";
 
@@ -43,6 +46,7 @@ export type CustomPaymentLinkStatus =
 export type CustomPaymentLink = {
   id: string;
   token: string;
+  orderNo: string;
   locale: Locale;
   title: string;
   specification: string;

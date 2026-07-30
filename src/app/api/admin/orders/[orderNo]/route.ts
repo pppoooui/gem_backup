@@ -13,6 +13,8 @@ const updateOrderSchema = z.object({
       "packing",
       "in_transit",
       "delivered",
+      "refund_requested",
+      "refunded",
       "processing",
       "shipped",
       "cancelled",
@@ -27,6 +29,7 @@ const updateOrderSchema = z.object({
       "worldfirst",
       "airwallex",
       "wise",
+      "lianlian",
       "bank_transfer",
       "manual",
     ])

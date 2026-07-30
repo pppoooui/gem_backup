@@ -50,6 +50,9 @@ export default async function CustomPaymentPage({
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#005466]">
             {zh ? "自定义规格付款链接" : "Custom specification payment link"}
           </p>
+          <p className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+            {zh ? "订单编号" : "Order number"} · {link.orderNo}
+          </p>
           <h1 className="mt-3 text-2xl font-semibold text-[#002b35]">
             {link.title}
           </h1>

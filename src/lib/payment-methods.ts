@@ -9,6 +9,7 @@ const paymentProviders = new Set<PaymentProvider>([
   "worldfirst",
   "airwallex",
   "wise",
+  "lianlian",
   "bank_transfer",
   "manual",
 ]);

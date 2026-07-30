@@ -55,8 +55,8 @@ export function CustomPaymentActions({
   }
 
   const contactMessage = zh
-    ? `你好，我想咨询自定义付款链接：${link.title}，金额 US$${link.amountUsd.toFixed(2)}。`
-    : `Hello, I have a question about the custom payment link for ${link.title}, total US$${link.amountUsd.toFixed(2)}.`;
+    ? `你好，我想咨询订单 ${link.orderNo}：${link.title}，金额 US$${link.amountUsd.toFixed(2)}。`
+    : `Hello, I have a question about order ${link.orderNo}: ${link.title}, total US$${link.amountUsd.toFixed(2)}.`;
 
   return (
     <div className="space-y-5">

@@ -716,6 +716,9 @@ export async function updatePersistedAdminOrder(
     total_usd: totalUsd,
   };
   if (update.status) persistedUpdate.status = update.status;
+  if (update.status === "refunded") {
+    persistedUpdate.refunded_at = new Date().toISOString();
+  }
   if (update.selectedPaymentProvider) {
     persistedUpdate.selected_payment_provider = update.selectedPaymentProvider;
   }

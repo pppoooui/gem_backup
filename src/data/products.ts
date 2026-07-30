@@ -231,6 +231,15 @@ export const paymentMethods: PaymentMethod[] = [
     minAmountUsd: 100,
   },
   {
+    id: "pay-lianlian",
+    provider: "lianlian",
+    name: "LianLian Global",
+    enabled: true,
+    currencies: ["USD"],
+    countries: ["Global"],
+    minAmountUsd: 1,
+  },
+  {
     id: "pay-bank",
     provider: "bank_transfer",
     name: "Bank Transfer",

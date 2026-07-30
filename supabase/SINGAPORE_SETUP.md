@@ -33,6 +33,7 @@ If this is a new Singapore Supabase project, run these files one by one, in orde
 17. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
 18. `supabase/migrations/0018_public_contact_refresh.sql`
 19. `supabase/migrations/0019_customer_contact_login.sql`
+20. `supabase/migrations/0020_refunds_lianlian_and_payment_order_numbers.sql`
 
 Run them separately in SQL Editor. A successful run means no red error. Some files return a small result table; that is normal.
 
@@ -60,6 +61,7 @@ Run these in order instead:
 16. `supabase/migrations/0017_global_usd_and_custom_payment_links.sql`
 17. `supabase/migrations/0018_public_contact_refresh.sql`
 18. `supabase/migrations/0019_customer_contact_login.sql`
+19. `supabase/migrations/0020_refunds_lianlian_and_payment_order_numbers.sql`
 
 `0007_production_hardening.sql` is important. It fixes admin RLS access, creates the server-only order-number function, and removes unsafe public inserts.
 `0009_reseed_order_number_sequence.sql` is safe to rerun and prevents order number collisions when older orders already exist.
@@ -68,6 +70,8 @@ Run these in order instead:
 `0017_global_usd_and_custom_payment_links.sql` adds global USD checkout settings, LINE contact settings, and the custom payment-link table.
 `0018_public_contact_refresh.sql` sets the requested WhatsApp, LINE, and public email contact details.
 `0019_customer_contact_login.sql` adds persistent customer sessions for official LINE Login and WhatsApp verification-code login.
+
+`0020_refunds_lianlian_and_payment_order_numbers.sql` adds negotiated refund approval statuses, LianLian Global as a USD payment method, and customer-name/date/sequence order numbers for custom payment links.
 
 ## 4. Final Check
 

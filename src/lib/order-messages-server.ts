@@ -81,3 +81,21 @@ export async function markPaymentSubmitted(orderId: string) {
     .eq("status", "awaiting_payment");
   if (error) throw new Error(error.message);
 }
+
+export async function markRefundRequested(orderId: string, reason: string) {
+  const supabase = adminClient();
+  if (!supabase) throw new Error("Order service unavailable");
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "refund_requested",
+      refund_reason: reason,
+      refund_requested_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .in("status", ["paid", "production", "packing", "in_transit", "delivered"])
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Order is not eligible for a refund request");
+}

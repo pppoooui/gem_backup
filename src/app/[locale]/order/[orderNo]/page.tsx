@@ -85,6 +85,8 @@ const statusLabel = {
   packing: "Packing",
   in_transit: "In transit",
   delivered: "Delivered",
+  refund_requested: "Refund awaiting approval",
+  refunded: "Refund approved",
   processing: "Processing",
   shipped: "Shipped",
   cancelled: "Cancelled",
@@ -95,6 +97,7 @@ const providerLabel: Record<PaymentProvider, string> = {
   worldfirst: "WorldFirst",
   airwallex: "Airwallex",
   wise: "Wise",
+  lianlian: "LianLian Global",
   bank_transfer: "Bank Transfer",
   manual: "Manual",
 };

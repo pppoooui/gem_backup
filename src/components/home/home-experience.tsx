@@ -88,6 +88,10 @@ const copy = {
       ["Can loose CZ be customized in size and shape?", "Yes. Standard sizes are well stocked, while fancy shapes, special millimeter sizes and custom cutting styles can be produced with custom tooling."],
       ["What is the difference between Hearts and Arrows CZ and ordinary CZ?", "Hearts and Arrows CZ is cut to precise proportions. Under focused light it displays clear heart and arrow patterns, with stronger brightness, fire and visual depth that more closely resembles a diamond."],
     ],
+    qrTitle: "Scan to add DFC sales",
+    qrBody: "Use LINE or WhatsApp to ask about specifications, quotations, payment links and order progress.",
+    scanLine: "Scan with LINE",
+    scanWhatsapp: "Scan with WhatsApp",
   },
   zh: {
     home: "首页",
@@ -141,6 +145,10 @@ const copy = {
       ["锆石裸石可以定制尺寸形状吗？", "支持定制，常规尺寸现货充足，异形、特殊毫米尺寸、特殊切割方式均可开模定制。"],
       ["八心八箭锆石和普通锆石差别在哪里？", "八心八箭锆石经过精准比例切割，在聚光下可以呈现清晰的心形与箭形图案，亮度、火彩层次感更强，视觉效果更接近钻石。"],
     ],
+    qrTitle: "扫码添加 DFC 客服",
+    qrBody: "可通过 LINE 或 WhatsApp 咨询产品规格、报价、付款链接和订单进度。",
+    scanLine: "使用 LINE 扫码添加",
+    scanWhatsapp: "使用 WhatsApp 扫码添加",
   },
 } satisfies Record<Locale, Record<string, string | string[] | string[][]>>;
 
@@ -369,6 +377,32 @@ export function HomeExperience({
                 <p className="max-w-4xl pb-6 pr-10 text-sm leading-7 text-black/58">{answer}</p>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contact-qr" className="border-t border-black/7 bg-[#f8f7f4] py-16 sm:py-20">
+        <div className="mx-auto max-w-[1100px] px-5 sm:px-8">
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a6a3a]">
+              DFC DIRECT CONTACT
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">{t.qrTitle}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-black/55">{t.qrBody}</p>
+          </div>
+          <div className="mx-auto mt-10 grid max-w-3xl gap-5 sm:grid-cols-2">
+            <article className="border border-black/8 bg-white p-5 text-center shadow-[0_12px_28px_rgba(0,0,0,0.035)]">
+              <div className="relative mx-auto aspect-square w-full max-w-72 overflow-hidden">
+                <Image src="/media/line-contact-qr.jpg" alt="DFC LINE contact QR code" fill className="object-contain" sizes="288px" />
+              </div>
+              <h3 className="mt-4 font-semibold">{t.scanLine}</h3>
+            </article>
+            <article className="border border-black/8 bg-white p-5 text-center shadow-[0_12px_28px_rgba(0,0,0,0.035)]">
+              <div className="relative mx-auto aspect-square w-full max-w-72 overflow-hidden">
+                <Image src="/media/whatsapp-business-qr.jpg" alt="DFC WhatsApp Business QR code" fill className="object-contain" sizes="288px" />
+              </div>
+              <h3 className="mt-4 font-semibold">{t.scanWhatsapp}</h3>
+            </article>
           </div>
         </div>
       </section>

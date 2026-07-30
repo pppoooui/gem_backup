@@ -108,7 +108,7 @@ export function AdminPaymentLinks() {
       setCreatedLink(data.link);
       setLinks((current) => [data.link, ...current]);
       setForm(emptyForm);
-      setMessage("付款链接已生成，可以复制或直接发送给客户。");
+      setMessage(`订单 ${data.link.orderNo} 的付款链接已生成，可以直接发送给客户。`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "付款链接创建失败");
     } finally {
@@ -151,9 +151,9 @@ export function AdminPaymentLinks() {
         <div className="flex items-center gap-2">
           <Link2 className="size-5 text-[#005466]" />
           <div>
-            <h2 className="font-semibold">生成自定义规格付款链接</h2>
+            <h2 className="font-semibold">生成订单付款链接</h2>
             <p className="mt-1 text-sm text-slate-500">
-              客户打开链接后看到固定规格和美元金额；如填写真实收款网址，可直接跳转付款。
+              系统自动生成“客户名称 + 日期 + 序号”的订单编号；客户可核对规格、美元金额并在线付款。
             </p>
           </div>
         </div>
@@ -236,7 +236,7 @@ export function AdminPaymentLinks() {
             </FormField>
           </div>
           <div className="sm:col-span-2">
-            <FormField label="真实付款网址（可选）">
+            <FormField label="连连支付 / 其他真实付款网址（可选）">
               <input
                 type="url"
                 value={form.paymentUrl}
@@ -248,7 +248,7 @@ export function AdminPaymentLinks() {
               />
             </FormField>
             <p className="mt-1 text-xs text-slate-400">
-              可粘贴 XTransfer、Wise、Airwallex 等平台生成的真实付款请求网址。
+              优先粘贴连连支付商户后台生成的安全收款链接，也支持 XTransfer、Wise、Airwallex 等付款网址。
             </p>
           </div>
           <FormField label="有效期（可选）">
@@ -289,7 +289,7 @@ export function AdminPaymentLinks() {
         {createdLink && createdUrl && (
           <div className="mt-5 rounded-md border border-emerald-200 bg-emerald-50 p-4">
             <p className="text-sm font-semibold text-emerald-800">
-              最新付款链接
+              最新订单 · {createdLink.orderNo}
             </p>
             <p className="mt-2 break-all text-xs text-emerald-700">
               {createdUrl}
@@ -306,7 +306,7 @@ export function AdminPaymentLinks() {
               {createdLink.customerWhatsApp && (
                 <a
                   href={`https://wa.me/${createdLink.customerWhatsApp.replace(/\D/g, "")}?text=${encodeURIComponent(
-                    `Your custom USD payment link: ${createdUrl}`,
+                    `Order ${createdLink.orderNo} — your secure USD payment link: ${createdUrl}`,
                   )}`}
                   target="_blank"
                   rel="noreferrer"
@@ -348,6 +348,9 @@ export function AdminPaymentLinks() {
               <article key={link.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-500">
+                      {link.orderNo}
+                    </p>
                     <p className="truncate font-medium">{link.title}</p>
                     <p className="mt-1 text-sm font-semibold text-[#003f4b]">
                       {formatUsd(link.amountUsd)}

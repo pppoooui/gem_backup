@@ -17,6 +17,8 @@ const statusLabels: Record<string, string> = {
   pending_quote: "待报价",
   awaiting_payment: "待付款",
   payment_submitted: "已提交付款",
+  refund_requested: "退款待审核",
+  refunded: "已同意退款",
   paid: "已付款",
   production: "生产中",
   packing: "包装中",

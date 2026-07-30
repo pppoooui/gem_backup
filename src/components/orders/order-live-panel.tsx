@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  BadgeDollarSign,
   Check,
   CreditCard,
   ExternalLink,
   Bell,
   MessageCircle,
+  RotateCcw,
   Send,
 } from "lucide-react";
 import type { Locale, OrderStatus } from "@/types/domain";
@@ -23,11 +23,13 @@ const steps: { status: OrderStatus; en: string; zh: string }[] = [
   { status: "packing", en: "Packing", zh: "包装" },
   { status: "in_transit", en: "Shipped", zh: "发出物流" },
   { status: "delivered", en: "Delivered", zh: "签收" },
+  { status: "refund_requested", en: "Negotiated refund", zh: "协商退款" },
 ];
 
 function normalizedStatus(status: OrderStatus) {
   if (status === "processing") return "production";
   if (status === "shipped") return "in_transit";
+  if (status === "refunded") return "refund_requested";
   return status;
 }
 
@@ -73,7 +75,7 @@ export function OrderLivePanel({
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
-  const [targetPrice, setTargetPrice] = useState("");
+  const [refundReason, setRefundReason] = useState("");
   const [chatLoaded, setChatLoaded] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const chatSectionRef = useRef<HTMLElement>(null);
@@ -203,32 +205,6 @@ export function OrderLivePanel({
     }
   }
 
-  async function requestPriceReview() {
-    const price = Number(targetPrice);
-    if (!Number.isFinite(price) || price <= 0) {
-      setNotice(
-        zh
-          ? "请输入有效的美元目标总价。"
-          : "Enter a valid target total in USD.",
-      );
-      return;
-    }
-    setNotice("");
-    const requestMessage = zh
-      ? `价格协商：我希望订单 ${orderNo} 的目标总价为 ${formatUsd(price)}，请客服确认。`
-      : `Price request: My target total for order ${orderNo} is ${formatUsd(price)}. Please review.`;
-    if (await postMessage(requestMessage)) {
-      setTargetPrice("");
-      setNotice(
-        zh
-          ? "目标价已发送，客服确认后正式报价会自动更新。"
-          : "Target price sent. The official quote will update after sales confirms it.",
-      );
-    } else {
-      setNotice(zh ? "发送失败，请重试。" : "Unable to send. Please try again.");
-    }
-  }
-
   async function confirmPayment() {
     setNotice("");
     const response = await fetch(`/api/orders/${orderNo}`, {
@@ -244,8 +220,55 @@ export function OrderLivePanel({
     }
   }
 
+  async function requestRefund() {
+    const reason = refundReason.trim();
+    if (reason.length < 5) {
+      setNotice(
+        zh
+          ? "请填写至少 5 个字的退款原因，并先与客服协商。"
+          : "Enter at least 5 characters and discuss the refund with sales first.",
+      );
+      return;
+    }
+    setSending(true);
+    setNotice("");
+    const response = await fetch(`/api/orders/${orderNo}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        action: "refund_requested",
+        reason,
+        customerName,
+      }),
+    });
+    setSending(false);
+    if (response.ok) {
+      setRefundReason("");
+      setNotice(
+        zh
+          ? "协商退款已提交，正在等待后台审核同意。"
+          : "Refund request submitted and awaiting admin approval.",
+      );
+      await refresh();
+    } else {
+      const data = await response.json().catch(() => ({}));
+      setNotice(
+        data.error ??
+          (zh ? "退款申请提交失败，请联系客服。" : "Unable to submit the refund request."),
+      );
+    }
+  }
+
   const activeStatus = normalizedStatus(status);
   const activeIndex = steps.findIndex((step) => step.status === activeStatus);
+  const canRequestRefund = [
+    "paid",
+    "production",
+    "packing",
+    "in_transit",
+    "delivered",
+  ].includes(status);
 
   return (
     <div className="space-y-6">
@@ -299,87 +322,58 @@ export function OrderLivePanel({
         </section>
       ) : null}
 
-      <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <BadgeDollarSign className="mt-0.5 size-5 shrink-0 text-[#005466]" />
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold">
-              {zh ? "在线协商价格" : "Negotiate the price online"}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-500">
-              {zh
-                ? "客户提交目标美元总价，客服可在后台修改正式报价；客户不能直接改动已确认金额。"
-                : "Submit a target total in USD. Sales can revise the official quote in the admin panel."}
-            </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <label className="flex h-11 min-w-0 flex-1 items-center rounded-md border border-slate-200 bg-white px-3 focus-within:border-[#005466]">
-                <span className="mr-2 text-sm text-slate-400">US$</span>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={targetPrice}
-                  onChange={(event) => setTargetPrice(event.target.value)}
-                  placeholder={zh ? "输入目标总价" : "Target order total"}
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={requestPriceReview}
-                disabled={sending}
-                className="h-11 rounded-md bg-[#003f4b] px-4 text-sm font-semibold text-white disabled:bg-slate-300"
-              >
-                {zh ? "提交目标价" : "Send target price"}
-              </button>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => messageInputRef.current?.focus()}
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-semibold text-[#005466]"
-              >
-                <MessageCircle className="size-4" />
-                {zh ? "站内聊天" : "On-site chat"}
-              </button>
-              {whatsappNumber && (
-                <a
-                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
-                    zh
-                      ? `你好，我想协商订单 ${orderNo} 的价格。`
-                      : `Hello, I would like to discuss the price for order ${orderNo}.`,
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-700"
-                >
-                  WhatsApp
-                  <ExternalLink className="size-3.5" />
-                </a>
+      {canRequestRefund || status === "refund_requested" || status === "refunded" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <RotateCcw className="mt-0.5 size-5 shrink-0 text-amber-700" />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold">
+                {zh ? "协商退款" : "Negotiated refund"}
+              </h2>
+              {status === "refunded" ? (
+                <p className="mt-2 text-sm font-medium text-emerald-700">
+                  {zh ? "后台已同意退款，请留意到账通知。" : "Your refund has been approved. Please watch for the payment notification."}
+                </p>
+              ) : status === "refund_requested" ? (
+                <p className="mt-2 text-sm font-medium text-amber-800">
+                  {zh ? "退款申请已提交，等待后台审核同意。" : "Your request is awaiting admin approval."}
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1 text-sm leading-6 text-amber-900/70">
+                    {zh
+                      ? "请先通过下方聊天、WhatsApp 或 LINE 与客服协商，再提交退款原因。提交后必须由后台审核同意。"
+                      : "Discuss the refund with sales by chat, WhatsApp or LINE first. The request only proceeds after admin approval."}
+                  </p>
+                  <textarea
+                    value={refundReason}
+                    onChange={(event) => setRefundReason(event.target.value)}
+                    maxLength={2000}
+                    placeholder={zh ? "填写协商结果和退款原因" : "Describe the agreement and refund reason"}
+                    className="mt-4 min-h-24 w-full rounded-md border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={requestRefund}
+                    disabled={sending}
+                    className="mt-3 h-11 rounded-md bg-amber-700 px-4 text-sm font-semibold text-white disabled:bg-slate-300"
+                  >
+                    {zh ? "提交协商退款" : "Submit refund request"}
+                  </button>
+                </>
               )}
-              {lineUrl && (
-                <a
-                  href={lineUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 items-center gap-2 rounded-md border border-emerald-200 bg-white px-3 text-sm font-semibold text-emerald-700"
-                >
-                  LINE
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
+              {notice && <p className="mt-3 text-sm text-[#005466]">{notice}</p>}
             </div>
-            {notice && <p className="mt-3 text-sm text-[#005466]">{notice}</p>}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section
         ref={chatSectionRef}
         id="order-chat"
         className="scroll-mt-4 rounded-md border border-slate-200 bg-white shadow-sm"
       >
-        <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-4">
           <MessageCircle className="size-5 text-[#005466]" />
           <h2 className="font-semibold">{zh ? "在线联系客服" : "Chat with sales"}</h2>
           {unreadCount > 0 ? (
@@ -387,7 +381,26 @@ export function OrderLivePanel({
               {unreadCount}
             </span>
           ) : null}
-          <span className="ml-auto text-xs text-slate-400">{zh ? "每 5 秒自动更新" : "Updates every 5 seconds"}</span>
+          <div className="ml-auto flex items-center gap-2">
+            {whatsappNumber ? (
+              <a
+                href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
+                  zh ? `你好，我想咨询订单 ${orderNo}。` : `Hello, I have a question about order ${orderNo}.`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700"
+              >
+                WhatsApp <ExternalLink className="size-3" />
+              </a>
+            ) : null}
+            {lineUrl ? (
+              <a href={lineUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                LINE <ExternalLink className="size-3" />
+              </a>
+            ) : null}
+            <span className="text-xs text-slate-400">{zh ? "每 5 秒自动更新" : "Updates every 5 seconds"}</span>
+          </div>
         </div>
         <div ref={chatViewportRef} className="h-80 space-y-3 overflow-y-auto bg-[#f3f4f6] p-4">
           {messages.length === 0 ? (

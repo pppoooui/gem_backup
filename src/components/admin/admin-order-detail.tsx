@@ -35,6 +35,8 @@ const statusFlow: { status: OrderStatus; label: string; tone: string }[] = [
   { status: "packing", label: "包装", tone: "bg-violet-600" },
   { status: "in_transit", label: "发出物流", tone: "bg-sky-700" },
   { status: "delivered", label: "已签收", tone: "bg-slate-700" },
+  { status: "refund_requested", label: "退款待审核", tone: "bg-amber-700" },
+  { status: "refunded", label: "已同意退款", tone: "bg-rose-700" },
 ];
 
 export function AdminOrderDetail({
@@ -81,15 +83,16 @@ export function AdminOrderDetail({
     ].join("\n");
   }, [order, paymentMethods, provider, total]);
 
-  async function saveOrderUpdate() {
+  async function saveOrderUpdate(statusOverride?: OrderStatus) {
     setIsSaving(true);
     setStatusMessage("");
 
     try {
+      const requestedStatus = statusOverride ?? status;
       const nextStatus =
-        status === "pending_quote" && quoteTotal > 0
+        requestedStatus === "pending_quote" && quoteTotal > 0
           ? "awaiting_payment"
-          : status;
+          : requestedStatus;
       const response = await fetch(`/api/admin/orders/${order.orderNo}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -183,6 +186,23 @@ export function AdminOrderDetail({
 
         <AdminOrderChat orderNo={order.orderNo} />
 
+        {status === "refund_requested" ? (
+          <section className="rounded-md border border-amber-300 bg-amber-50 p-4">
+            <h3 className="font-semibold text-amber-950">客户已提交协商退款</h3>
+            <p className="mt-1 text-sm leading-6 text-amber-900/70">
+              请先查看聊天记录确认协商结果。只有点击同意后，客户订单页才会显示退款已批准。
+            </p>
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void saveOrderUpdate("refunded")}
+              className="mt-3 h-10 rounded-md bg-rose-700 px-4 text-sm font-semibold text-white disabled:bg-slate-300"
+            >
+              同意退款
+            </button>
+          </section>
+        ) : null}
+
         <div className="grid gap-4 lg:grid-cols-3">
           <MoneyField label="最终商品报价" value={quoteTotal} onChange={setQuoteTotal} />
           <MoneyField
@@ -225,7 +245,7 @@ export function AdminOrderDetail({
             </div>
             <button
               className="h-11 rounded-md bg-[#003f4b] px-5 text-sm font-semibold text-white disabled:cursor-wait disabled:bg-slate-300"
-              onClick={saveOrderUpdate}
+              onClick={() => void saveOrderUpdate()}
               disabled={isSaving}
             >
               {isSaving ? "保存中..." : "保存报价"}
