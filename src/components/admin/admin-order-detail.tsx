@@ -6,6 +6,7 @@ import {
   Copy,
   FileSpreadsheet,
   ImageIcon,
+  Link2,
   MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
@@ -59,6 +60,7 @@ export function AdminOrderDetail({
   const [status, setStatus] = useState<OrderStatus>(
     order.status ?? "pending_quote",
   );
+  const [paymentUrl, setPaymentUrl] = useState(order.paymentUrl ?? "");
   const [statusMessage, setStatusMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -79,9 +81,11 @@ export function AdminOrderDetail({
       `Total: ${formatUsd(total)} USD.`,
       `Payment method: ${method}.`,
       `Items: ${itemSummary}.`,
-      "Please reply here and we will send the full PI and account details.",
+      paymentUrl
+        ? `Pay securely here: ${paymentUrl}`
+        : "Please reply here and we will send the full PI and account details.",
     ].join("\n");
-  }, [order, paymentMethods, provider, total]);
+  }, [order, paymentMethods, paymentUrl, provider, total]);
 
   async function saveOrderUpdate(statusOverride?: OrderStatus) {
     setIsSaving(true);
@@ -102,6 +106,7 @@ export function AdminOrderDetail({
           shippingFeeUsd: shippingFee,
           discountUsd: discount,
           selectedPaymentProvider: provider,
+          paymentUrl: paymentUrl.trim() || undefined,
         }),
       });
       const data = (await response.json()) as {
@@ -218,6 +223,22 @@ export function AdminOrderDetail({
         </div>
 
         <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+          <label className="mb-4 block space-y-2">
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Link2 className="size-4 text-[#005466]" />
+              客户在线支付网址
+            </span>
+            <input
+              type="url"
+              value={paymentUrl}
+              onChange={(event) => setPaymentUrl(event.target.value)}
+              placeholder="https:// 连连支付或其他收款平台生成的付款链接"
+              className="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#005466]"
+            />
+            <span className="block text-xs leading-5 text-slate-500">
+              填写后保存报价，客户订单页会出现“立即支付”按钮。金额请与下方最终金额保持一致。
+            </span>
+          </label>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
             <label className="space-y-2">
               <span className="text-sm font-medium">收款方式</span>
@@ -248,7 +269,11 @@ export function AdminOrderDetail({
               onClick={() => void saveOrderUpdate()}
               disabled={isSaving}
             >
-              {isSaving ? "保存中..." : "保存报价"}
+              {isSaving
+                ? "保存中..."
+                : paymentUrl.trim()
+                  ? "保存并发布付款"
+                  : "保存报价"}
             </button>
           </div>
           {statusMessage && (

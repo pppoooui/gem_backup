@@ -212,7 +212,14 @@ export default function CartPage({
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-slate-500">
-                  <span>{t.unitPrice}: {formatUsd(line.unitPriceUsd, { minimumFractionDigits: 3 })} {t.perPiece}</span>
+                  <span>
+                    {t.unitPrice}:{" "}
+                    {line.unitPriceUsd > 0
+                      ? `${formatUsd(line.unitPriceUsd, { minimumFractionDigits: 3 })} ${t.perPiece}`
+                      : locale === "zh"
+                        ? "待后台确认"
+                        : "To be confirmed"}
+                  </span>
                   <span>{t.moq}: {line.variant.moq.toLocaleString()}</span>
                 </div>
 
@@ -235,8 +242,12 @@ export default function CartPage({
                     </button>
                   </div>
                   <p className="text-sm font-semibold text-slate-950 tabular-nums">
-                    {formatUsd(line.lineTotalUsd)}
-                    <span className="block text-xs font-normal text-slate-400">USD</span>
+                    {line.lineTotalUsd > 0
+                      ? formatUsd(line.lineTotalUsd)
+                      : locale === "zh"
+                        ? "待报价"
+                        : "Pending quote"}
+                    {line.lineTotalUsd > 0 ? <span className="block text-xs font-normal text-slate-400">USD</span> : null}
                   </p>
                 </div>
               </div>
@@ -249,7 +260,11 @@ export default function CartPage({
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-600">{t.subtotal}</span>
             <span className="font-semibold text-slate-950 tabular-nums">
-              {formatUsd(subtotalUsd)}
+              {subtotalUsd > 0
+                ? formatUsd(subtotalUsd)
+                : locale === "zh"
+                  ? "待后台确认"
+                  : "To be confirmed"}
             </span>
           </div>
           <div className="mt-3 flex items-center justify-between text-sm">
@@ -264,8 +279,12 @@ export default function CartPage({
               {t.total}
             </span>
             <span className="text-lg font-bold text-slate-950 tabular-nums">
-              {formatUsd(subtotalUsd)}
-              <span className="block text-xs font-normal text-slate-400">USD</span>
+              {subtotalUsd > 0
+                ? formatUsd(subtotalUsd)
+                : locale === "zh"
+                  ? "待后台确认"
+                  : "To be confirmed"}
+              {subtotalUsd > 0 ? <span className="block text-xs font-normal text-slate-400">USD</span> : null}
             </span>
           </div>
           <Link

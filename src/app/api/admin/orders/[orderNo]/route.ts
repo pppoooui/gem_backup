@@ -23,6 +23,15 @@ const updateOrderSchema = z.object({
   quoteTotalUsd: z.number().min(0).optional(),
   shippingFeeUsd: z.number().min(0).optional(),
   discountUsd: z.number().min(0).optional(),
+  paymentUrl: z
+    .string()
+    .trim()
+    .max(2000)
+    .refine(
+      (value) => !value || /^https?:\/\//i.test(value),
+      "付款网址必须以 http:// 或 https:// 开头",
+    )
+    .optional(),
   selectedPaymentProvider: z
     .enum([
       "xtransfer",

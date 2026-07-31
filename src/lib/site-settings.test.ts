@@ -6,12 +6,12 @@ import {
 } from "@/lib/site-settings";
 
 describe("managed storefront settings", () => {
-  it("keeps public sections and catalog prices hidden by default", () => {
+  it("keeps optional sections hidden and enables shopping by default", () => {
     const values = new Map(managedSiteSettings.map((setting) => [setting.key, setting.value]));
 
     expect(values.get("home_show_history")).toBe("false");
     expect(values.get("home_show_recognition")).toBe("false");
-    expect(values.get("catalog_show_prices")).toBe("false");
+    expect(values.get("catalog_show_prices")).toBe("true");
     expect(
       managedSiteSettings.filter((setting) => setting.key.startsWith("catalog_")),
     ).toHaveLength(1);
@@ -24,7 +24,7 @@ describe("managed storefront settings", () => {
     ]);
 
     expect(merged.find((setting) => setting.key === "home_show_history")?.value).toBe("true");
-    expect(merged.find((setting) => setting.key === "catalog_show_prices")?.value).toBe("false");
+    expect(merged.find((setting) => setting.key === "catalog_show_prices")?.value).toBe("true");
     expect(merged.find((setting) => setting.key === "site_url")?.value).toBe("https://dfccz.top");
   });
 

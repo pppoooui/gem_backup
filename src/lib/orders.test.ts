@@ -242,10 +242,14 @@ describe("checkout orders", () => {
       shippingFeeUsd: 42,
       discountUsd: 5,
       selectedPaymentProvider: "wise",
+      paymentUrl: "https://pay.example.com/orders/GEM-20260608-0001",
     });
 
     expect(updated?.status).toBe("awaiting_payment");
     expect(updated?.totalUsd).toBeCloseTo(122.5);
     expect(listAdminOrders()[0].selectedPaymentProvider).toBe("wise");
+    expect(
+      getOrderByToken(order.orderNo, "admin-token")?.paymentUrl,
+    ).toBe("https://pay.example.com/orders/GEM-20260608-0001");
   });
 });

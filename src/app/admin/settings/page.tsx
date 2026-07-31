@@ -30,7 +30,7 @@ const SETTING_COPY: Record<string, { label: string; description: string }> = {
   },
   catalog_show_prices: {
     label: "显示商品单价与购物车",
-    description: "默认隐藏单价；商品规格、MOQ、库存和筛选布局始终显示。",
+    description: "默认开启正常购物流程；客户可查看美元价格、加入购物车并提交订单。",
   },
   min_order_amount_usd: {
     label: "最低订单金额（USD）",

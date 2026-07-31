@@ -56,6 +56,7 @@ export function OrderLivePanel({
   customerName,
   initialStatus,
   initialTotal,
+  initialPaymentUrl,
   whatsappNumber,
   lineUrl,
 }: {
@@ -65,12 +66,14 @@ export function OrderLivePanel({
   customerName: string;
   initialStatus: OrderStatus;
   initialTotal: number;
+  initialPaymentUrl?: string;
   whatsappNumber?: string;
   lineUrl?: string;
 }) {
   const zh = locale === "zh";
   const [status, setStatus] = useState<OrderStatus>(initialStatus);
   const [total, setTotal] = useState(initialTotal);
+  const [paymentUrl, setPaymentUrl] = useState(initialPaymentUrl ?? "");
   const [messages, setMessages] = useState<OrderMessage[]>([]);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -96,6 +99,7 @@ export function OrderLivePanel({
       const data = await orderResponse.json();
       setStatus(data.order.status);
       setTotal(data.order.totalUsd);
+      setPaymentUrl(data.order.paymentUrl ?? "");
     }
     if (chatResponse.ok) {
       const data = await chatResponse.json();
@@ -309,10 +313,28 @@ export function OrderLivePanel({
               <p className="mt-1 text-2xl font-semibold text-[#003f4b]">{formatUsd(total)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <a href={`/${locale}/payment`} className="inline-flex h-11 items-center gap-2 bg-[#003f4b] px-4 text-sm font-semibold text-white">
-                <CreditCard className="size-4" />
-                {zh ? "查看付款方式" : "Payment methods"}
-              </a>
+              {paymentUrl ? (
+                <a
+                  href={paymentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-11 items-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white"
+                >
+                  <CreditCard className="size-4" />
+                  {zh ? `立即支付 ${formatUsd(total)}` : `Pay ${formatUsd(total)} now`}
+                  <ExternalLink className="size-4" />
+                </a>
+              ) : (
+                <a href={`/${locale}/payment`} className="inline-flex h-11 items-center gap-2 bg-[#003f4b] px-4 text-sm font-semibold text-white">
+                  <CreditCard className="size-4" />
+                  {zh ? "查看付款方式" : "Payment methods"}
+                </a>
+              )}
+              {paymentUrl ? (
+                <a href={`/${locale}/payment`} className="inline-flex h-11 items-center gap-2 border border-slate-200 bg-white px-4 text-sm font-semibold text-[#003f4b]">
+                  {zh ? "其他付款方式" : "Other payment methods"}
+                </a>
+              ) : null}
               <button onClick={confirmPayment} className="h-11 border border-[#003f4b] bg-white px-4 text-sm font-semibold text-[#003f4b]">
                 {zh ? "我已付款" : "I have paid"}
               </button>

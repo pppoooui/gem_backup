@@ -413,15 +413,22 @@ export default function CheckoutPage({
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {line.quantity.toLocaleString()} pcs ×{" "}
-                      {formatUsd(line.unitPriceUsd, {
-                        minimumFractionDigits: 3,
-                        maximumFractionDigits: 3,
-                      })}{" "}
-                      {t.perPiece}
+                      {line.unitPriceUsd > 0
+                        ? `${formatUsd(line.unitPriceUsd, {
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3,
+                          })} ${t.perPiece}`
+                        : locale === "zh"
+                          ? "待后台确认"
+                          : "To be confirmed"}
                     </p>
                   </div>
                   <p className="text-sm font-semibold sm:text-right">
-                    {formatUsd(line.lineTotalUsd)}
+                    {line.lineTotalUsd > 0
+                      ? formatUsd(line.lineTotalUsd)
+                      : locale === "zh"
+                        ? "待报价"
+                        : "Pending quote"}
                   </p>
                 </div>
               ))}
@@ -471,7 +478,13 @@ export default function CheckoutPage({
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-slate-500">{t.subtotal}</span>
-                <span className="font-medium">{formatUsd(subtotalUsd)}</span>
+                <span className="font-medium">
+                  {subtotalUsd > 0
+                    ? formatUsd(subtotalUsd)
+                    : locale === "zh"
+                      ? "待后台确认"
+                      : "To be confirmed"}
+                </span>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-1.5 text-slate-500">
@@ -484,8 +497,12 @@ export default function CheckoutPage({
                 <div className="flex items-start justify-between gap-4">
                   <span className="font-semibold">{t.total}</span>
                   <span className="text-right text-xl font-semibold text-[#002b35]">
-                    {formatUsd(subtotalUsd)}
-                    <span className="block text-sm font-normal text-slate-500">USD</span>
+                    {subtotalUsd > 0
+                      ? formatUsd(subtotalUsd)
+                      : locale === "zh"
+                        ? "待后台确认"
+                        : "To be confirmed"}
+                    {subtotalUsd > 0 ? <span className="block text-sm font-normal text-slate-500">USD</span> : null}
                   </span>
                 </div>
               </div>

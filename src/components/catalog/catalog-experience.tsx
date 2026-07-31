@@ -61,12 +61,12 @@ const copy = {
     grade: "Quality / Grade",
     cut: "Cut",
     moq: "MOQ",
-    add: "Add",
-    added: "Added",
+    add: "Add to cart",
+    added: "In cart",
     inStock: "In stock",
     lowStock: "Low stock",
     quoteOnly: "Quote batch",
-    requestInvoice: "Request Final Invoice",
+    requestInvoice: "Proceed to Checkout",
     checkout: "Checkout Details",
     companyName: "Company name",
     contactName: "Contact name",
@@ -80,12 +80,12 @@ const copy = {
     gstin: "Tax / VAT ID",
     iec: "Import / Export ID",
     note: "Note",
-    submitOrder: "Submit PI Request",
+    submitOrder: "Place Order",
     submitting: "Submitting...",
     manualOptions: "Manual Payment Options",
     invoiceNote: "Shipping & taxes calculated in final invoice.",
     secure: "Secure & Confidential",
-    response: "We will send the proforma invoice within 24 hours.",
+    response: "Sales will confirm the final amount and publish a secure Pay now button on your order page.",
   },
   zh: {
     products: "商品",
@@ -105,12 +105,12 @@ const copy = {
     grade: "品质 / 等级",
     cut: "切工",
     moq: "起批",
-    add: "加入",
-    added: "已加入",
+    add: "加入购物车",
+    added: "已在购物车",
     inStock: "有货",
     lowStock: "低库存",
     quoteOnly: "确认批次",
-    requestInvoice: "请求最终 PI",
+    requestInvoice: "去结算",
     checkout: "下单信息",
     companyName: "公司名称",
     contactName: "联系人",
@@ -124,12 +124,12 @@ const copy = {
     gstin: "税号 / VAT（可选）",
     iec: "进出口编号（可选）",
     note: "备注",
-    submitOrder: "提交 PI 请求",
+    submitOrder: "提交订单",
     submitting: "提交中...",
     manualOptions: "人工确认收款方式",
     invoiceNote: "运费和税费将在最终 PI 中确认。",
     secure: "安全保密",
-    response: "我们会在 24 小时内发送形式发票。",
+    response: "客服确认最终金额后，订单页会出现安全的“立即支付”按钮。",
   },
 } satisfies Record<Locale, Record<string, string>>;
 
@@ -1099,8 +1099,8 @@ function ProductCard({
             <span>{t.moq}</span>
             <span>{variant.moq.toLocaleString()} pcs</span>
           </div>
-          {showPrices ? <div className="space-y-2">
-            {variant.priceTiers.map((tier) => (
+          {showPrices && variant.priceTiers.some((tier) => tier.priceUsd > 0) ? <div className="space-y-2">
+            {variant.priceTiers.filter((tier) => tier.priceUsd > 0).map((tier) => (
               <div
                 key={tier.label}
                 className="flex items-start justify-between text-sm"
@@ -1115,7 +1115,11 @@ function ProductCard({
                 </span>
               </div>
             ))}
-          </div> : null}
+          </div> : showPrices ? (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+              {locale === "zh" ? "价格由后台确认" : "Final price confirmed by sales"}
+            </p>
+          ) : null}
         </div>
         <div className="mt-5 flex items-center justify-between gap-3">
           <span
@@ -1213,7 +1217,7 @@ function CartPanel({
       return;
     }
     if (validCartLines.length === 0) {
-      setError(locale === "zh" ? "询价车为空。" : "Your cart is empty.");
+      setError(locale === "zh" ? "购物车为空。" : "Your cart is empty.");
       return;
     }
 
@@ -1257,7 +1261,7 @@ function CartPanel({
     <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col overflow-y-auto">
       <div className="flex items-center justify-between border-b border-slate-100 p-5">
         <h2 className="text-lg font-semibold">
-          {locale === "en" ? "Your Cart" : "询价车"} ({validCartLines.length})
+          {locale === "en" ? "Your Cart" : "购物车"} ({validCartLines.length})
         </h2>
         <button onClick={onClose} aria-label="Close cart panel">
           <X className="size-5" />
@@ -1268,7 +1272,13 @@ function CartPanel({
           {showPrices ? "Subtotal" : locale === "zh" ? "订单商品" : "Order items"} ({validCartLines.length})
         </p>
         {showPrices ? <>
-          <p className="mt-1 text-2xl font-semibold">{formatUsd(subtotal)}</p>
+          <p className="mt-1 text-2xl font-semibold">
+            {subtotal > 0
+              ? formatUsd(subtotal)
+              : locale === "zh"
+                ? "待后台确认"
+                : "To be confirmed"}
+          </p>
           <p className="text-sm text-slate-500">USD</p>
         </> : <p className="mt-1 text-sm font-medium text-[#005466]">
           {locale === "zh" ? "提交后由客服确认价格" : "Price confirmed by sales after submission"}
@@ -1339,7 +1349,11 @@ function CartPanel({
                     </button>
                   </div>
                   {showPrices ? <p className="text-sm font-semibold">
-                    {formatUsd(lineTotal(variant, line.quantity))}
+                    {lineTotal(variant, line.quantity) > 0
+                      ? formatUsd(lineTotal(variant, line.quantity))
+                      : locale === "zh"
+                        ? "待报价"
+                        : "Pending quote"}
                   </p> : null}
                 </div>
               </div>

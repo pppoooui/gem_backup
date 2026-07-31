@@ -198,6 +198,7 @@ export type AdminOrder = {
   totalUsd: number;
   status: OrderStatus;
   selectedPaymentProvider: PaymentProvider;
+  paymentUrl?: string;
   itemCount: number;
   createdAt: string;
   note?: string;

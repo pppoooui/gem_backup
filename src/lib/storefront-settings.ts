@@ -27,7 +27,7 @@ function defaultStorefrontSettings(): StorefrontSettings {
   return {
     showHistory: false,
     showRecognition: false,
-    showPrices: false,
+    showPrices: true,
     whatsappNumber:
       process.env.WHATSAPP_VENDOR_PHONE_NUMBER?.trim() || PUBLIC_CONTACT_PHONE,
     lineUrl: process.env.LINE_CHAT_URL?.trim() || PUBLIC_LINE_URL,
@@ -65,7 +65,10 @@ export async function getStorefrontSettings(): Promise<StorefrontSettings> {
   return {
     showHistory: isEnabledSetting(values.get("home_show_history")),
     showRecognition: isEnabledSetting(values.get("home_show_recognition")),
-    showPrices: isEnabledSetting(values.get("catalog_show_prices")),
+    showPrices:
+      values.has("catalog_show_prices")
+        ? isEnabledSetting(values.get("catalog_show_prices"))
+        : defaults.showPrices,
     whatsappNumber:
       configuredWhatsAppDigits.length >= 7
         ? configuredWhatsApp

@@ -66,6 +66,7 @@ export type CheckoutOrder = {
   totalUsd: number;
   status: OrderStatus;
   selectedPaymentProvider: PaymentProvider;
+  paymentUrl?: string;
   note?: string;
   paymentScreenshotUrl?: string | null;
   createdAt: string;
@@ -86,6 +87,7 @@ type AdminOrderUpdate = {
   shippingFeeUsd?: number;
   discountUsd?: number;
   selectedPaymentProvider?: PaymentProvider;
+  paymentUrl?: string;
 };
 
 type SupabaseCustomerRow = {
@@ -129,6 +131,7 @@ type SupabaseOrderRow = {
   discount_usd: number | string;
   total_usd: number | string;
   selected_payment_provider?: PaymentProvider | null;
+  payment_url?: string | null;
   buyer_note?: string | null;
   payment_screenshot_url?: string | null;
   secure_token_hash: string;
@@ -524,6 +527,7 @@ export async function getPersistedOrderByToken(orderNo: string, token: string) {
       discount_usd,
       total_usd,
       selected_payment_provider,
+      payment_url,
       buyer_note,
       payment_screenshot_url,
       secure_token_hash,
@@ -601,6 +605,7 @@ export async function listPersistedAdminOrders(
       discount_usd,
       total_usd,
       selected_payment_provider,
+      payment_url,
       buyer_note,
       payment_screenshot_url,
       secure_token_hash,
@@ -668,6 +673,7 @@ export function updateAdminOrder(orderNo: string, update: AdminOrderUpdate) {
     discountUsd,
     selectedPaymentProvider:
       update.selectedPaymentProvider ?? order.selectedPaymentProvider,
+    paymentUrl: update.paymentUrl ?? order.paymentUrl,
     subtotalUsd,
     totalUsd: Math.max(subtotalUsd + shippingFeeUsd - discountUsd, 0),
   };
@@ -722,6 +728,9 @@ export async function updatePersistedAdminOrder(
   if (update.selectedPaymentProvider) {
     persistedUpdate.selected_payment_provider = update.selectedPaymentProvider;
   }
+  if (update.paymentUrl !== undefined) {
+    persistedUpdate.payment_url = update.paymentUrl;
+  }
 
   const { data, error } = await supabase
     .from("orders")
@@ -757,6 +766,7 @@ function toAdminOrder(order: CheckoutOrder): AdminOrder {
     totalUsd: order.totalUsd,
     status: order.status,
     selectedPaymentProvider: order.selectedPaymentProvider,
+    paymentUrl: order.paymentUrl,
     itemCount: order.lines.length,
     createdAt: order.createdAt,
     note: order.note,
@@ -823,6 +833,7 @@ function mapSupabaseOrder(row: SupabaseOrderRow): CheckoutOrder {
     totalUsd: Number(row.total_usd),
     status: row.status,
     selectedPaymentProvider: row.selected_payment_provider ?? "xtransfer",
+    paymentUrl: row.payment_url ?? undefined,
     note: row.buyer_note ?? undefined,
     paymentScreenshotUrl: row.payment_screenshot_url ?? null,
     createdAt: row.created_at,

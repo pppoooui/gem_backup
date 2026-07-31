@@ -36,9 +36,9 @@ export const managedSiteSettings: ManagedSiteSetting[] = [
   },
   {
     key: "catalog_show_prices",
-    value: "false",
+    value: "true",
     labelEn: "Show product unit prices",
-    descriptionEn: "Shows public unit prices and enables the cart. Product specifications remain visible.",
+    descriptionEn: "Shows public unit prices and enables the normal cart and checkout flow.",
     isToggle: true,
   },
   {
