@@ -369,13 +369,14 @@ export function HomeExperience({
           </div>
           <div className="mt-10 divide-y divide-black/8 border-y border-black/8">
             {(t.faqItems as string[][]).map(([question, answer]) => (
-              <details key={question} className="group py-1">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-5 text-base font-semibold [&::-webkit-details-marker]:hidden">
-                  <span>{question}</span>
-                  <span className="grid size-7 shrink-0 place-items-center rounded-full border border-black/12 text-lg font-light transition group-open:rotate-45">+</span>
-                </summary>
-                <p className="max-w-4xl pb-6 pr-10 text-sm leading-7 text-black/58">{answer}</p>
-              </details>
+              <article key={question} className="py-7 sm:py-8">
+                <h3 className="text-lg font-semibold leading-7 text-black sm:text-xl">
+                  {question}
+                </h3>
+                <p className="mt-3 max-w-4xl text-base leading-8 text-black/70 sm:text-lg sm:leading-8">
+                  {answer}
+                </p>
+              </article>
             ))}
           </div>
         </div>
