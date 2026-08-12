@@ -88,6 +88,10 @@ export function AdminOrderDetail({
   }, [order, paymentMethods, paymentUrl, provider, total]);
 
   async function saveOrderUpdate(statusOverride?: OrderStatus) {
+    if (provider === "lianlian" && !paymentUrl.trim()) {
+      setStatusMessage("选择连连支付后，请先粘贴连连商户后台生成的收款链接。");
+      return;
+    }
     setIsSaving(true);
     setStatusMessage("");
 
@@ -222,11 +226,16 @@ export function AdminOrderDetail({
           />
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+        <div className={cn(
+          "rounded-md border p-4",
+          provider === "lianlian"
+            ? "border-emerald-200 bg-emerald-50"
+            : "border-slate-200 bg-slate-50",
+        )}>
           <label className="mb-4 block space-y-2">
             <span className="flex items-center gap-2 text-sm font-semibold">
               <Link2 className="size-4 text-[#005466]" />
-              客户在线支付网址
+              {provider === "lianlian" ? "连连支付收款链接（必填）" : "客户在线支付网址"}
             </span>
             <input
               type="url"
@@ -236,8 +245,21 @@ export function AdminOrderDetail({
               className="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#005466]"
             />
             <span className="block text-xs leading-5 text-slate-500">
-              填写后保存报价，客户订单页会出现“立即支付”按钮。金额请与下方最终金额保持一致。
+              {provider === "lianlian"
+                ? "先在连连支付商户后台按最终美元金额生成收款链接，再粘贴并保存。客户订单页会直接显示“使用连连支付”按钮。"
+                : "填写后保存报价，客户订单页会出现“立即支付”按钮。金额请与下方最终金额保持一致。"}
             </span>
+            {paymentUrl.trim() ? (
+              <a
+                href={paymentUrl.trim()}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-[#005466]"
+              >
+                <Link2 className="size-3.5" />
+                保存前测试收款链接
+              </a>
+            ) : null}
           </label>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
             <label className="space-y-2">
@@ -272,7 +294,9 @@ export function AdminOrderDetail({
               {isSaving
                 ? "保存中..."
                 : paymentUrl.trim()
-                  ? "保存并发布付款"
+                  ? provider === "lianlian"
+                    ? "保存并发布连连支付"
+                    : "保存并发布付款"
                   : "保存报价"}
             </button>
           </div>

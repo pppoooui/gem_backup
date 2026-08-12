@@ -115,6 +115,7 @@ export async function GET() {
   return NextResponse.json({
     allNormal,
     checkedAt: new Date().toISOString(),
+    deploymentVersion: process.env.APP_VERSION ?? "grid4-lianlian-20260812",
     deploymentRegion: process.env.VERCEL_REGION ?? "local",
     checks,
   });

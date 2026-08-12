@@ -118,6 +118,11 @@ export default async function CustomPaymentPage({
               : "Review the specification and USD amount before paying. Confirm that any external payment URL belongs to an approved provider."}
           </p>
           <div className="mt-5">
+            {link.paymentUrl ? (
+              <p className="mb-3 rounded-md bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+                {zh ? "连连支付安全收款链接已就绪" : "Secure LianLian payment link ready"}
+              </p>
+            ) : null}
             <CustomPaymentActions
               link={{ ...link, locale }}
               paymentMethods={paymentMethods}

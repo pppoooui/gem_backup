@@ -235,8 +235,8 @@ export function AdminPaymentLinks() {
               />
             </FormField>
           </div>
-          <div className="sm:col-span-2">
-            <FormField label="连连支付 / 其他真实付款网址（可选）">
+          <div className="sm:col-span-2 rounded-md border border-emerald-200 bg-emerald-50 p-4">
+            <FormField label="连连支付收款链接（必填）">
               <input
                 type="url"
                 value={form.paymentUrl}
@@ -245,11 +245,23 @@ export function AdminPaymentLinks() {
                 }
                 placeholder="https://..."
                 className="h-10 w-full rounded-md border border-slate-200 px-3 text-sm outline-none"
+                required
               />
             </FormField>
-            <p className="mt-1 text-xs text-slate-400">
-              优先粘贴连连支付商户后台生成的安全收款链接，也支持 XTransfer、Wise、Airwallex 等付款网址。
+            <p className="mt-2 text-xs leading-5 text-emerald-800">
+              先在连连支付商户后台按最终美元金额生成收款链接，再粘贴到这里。客户打开本站付款页后会看到“立即支付”按钮。
             </p>
+            {form.paymentUrl.trim() ? (
+              <a
+                href={form.paymentUrl.trim()}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex h-9 items-center gap-2 rounded-md border border-emerald-300 bg-white px-3 text-xs font-semibold text-emerald-800"
+              >
+                <ExternalLink className="size-3.5" />
+                生成前测试收款链接
+              </a>
+            ) : null}
           </div>
           <FormField label="有效期（可选）">
             <input

@@ -10,7 +10,7 @@ import {
   RotateCcw,
   Send,
 } from "lucide-react";
-import type { Locale, OrderStatus } from "@/types/domain";
+import type { Locale, OrderStatus, PaymentProvider } from "@/types/domain";
 import type { OrderMessage } from "@/lib/order-messages-server";
 import { cn, formatUsd } from "@/lib/utils";
 
@@ -57,6 +57,7 @@ export function OrderLivePanel({
   initialStatus,
   initialTotal,
   initialPaymentUrl,
+  initialPaymentProvider,
   whatsappNumber,
   lineUrl,
 }: {
@@ -67,6 +68,7 @@ export function OrderLivePanel({
   initialStatus: OrderStatus;
   initialTotal: number;
   initialPaymentUrl?: string;
+  initialPaymentProvider: PaymentProvider;
   whatsappNumber?: string;
   lineUrl?: string;
 }) {
@@ -74,6 +76,7 @@ export function OrderLivePanel({
   const [status, setStatus] = useState<OrderStatus>(initialStatus);
   const [total, setTotal] = useState(initialTotal);
   const [paymentUrl, setPaymentUrl] = useState(initialPaymentUrl ?? "");
+  const [paymentProvider, setPaymentProvider] = useState(initialPaymentProvider);
   const [messages, setMessages] = useState<OrderMessage[]>([]);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -100,6 +103,7 @@ export function OrderLivePanel({
       setStatus(data.order.status);
       setTotal(data.order.totalUsd);
       setPaymentUrl(data.order.paymentUrl ?? "");
+      setPaymentProvider(data.order.selectedPaymentProvider);
     }
     if (chatResponse.ok) {
       const data = await chatResponse.json();
@@ -321,7 +325,13 @@ export function OrderLivePanel({
                   className="inline-flex h-11 items-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white"
                 >
                   <CreditCard className="size-4" />
-                  {zh ? `立即支付 ${formatUsd(total)}` : `Pay ${formatUsd(total)} now`}
+                  {paymentProvider === "lianlian"
+                    ? zh
+                      ? `使用连连支付 ${formatUsd(total)}`
+                      : `Pay ${formatUsd(total)} with LianLian`
+                    : zh
+                      ? `立即支付 ${formatUsd(total)}`
+                      : `Pay ${formatUsd(total)} now`}
                   <ExternalLink className="size-4" />
                 </a>
               ) : (

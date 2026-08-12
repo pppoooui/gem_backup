@@ -69,8 +69,8 @@ export function CustomPaymentActions({
         >
           <CreditCard className="size-5" />
           {zh
-            ? `立即支付 US$${link.amountUsd.toFixed(2)}`
-            : `Pay US$${link.amountUsd.toFixed(2)} now`}
+            ? `使用连连支付 US$${link.amountUsd.toFixed(2)}`
+            : `Pay US$${link.amountUsd.toFixed(2)} with LianLian`}
           <ExternalLink className="size-4" />
         </a>
       ) : null}

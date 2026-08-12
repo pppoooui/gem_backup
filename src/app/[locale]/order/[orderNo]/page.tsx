@@ -274,6 +274,7 @@ export default async function OrderPage({
             initialStatus={order.status}
             initialTotal={order.totalUsd}
             initialPaymentUrl={order.paymentUrl}
+            initialPaymentProvider={order.selectedPaymentProvider}
             whatsappNumber={storefrontSettings.whatsappNumber}
             lineUrl={storefrontSettings.lineUrl}
           />

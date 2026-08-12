@@ -23,7 +23,10 @@ const createSchema = z.object({
   customerName: z.string().trim().max(160).optional(),
   customerWhatsApp: z.string().trim().max(40).optional(),
   note: z.string().trim().max(2000).optional(),
-  paymentUrl: optionalUrl,
+  paymentUrl: optionalUrl.refine(
+    (value) => Boolean(value),
+    "请粘贴连连支付或其他收款平台生成的真实付款网址",
+  ),
   expiresAt: z.string().datetime().optional(),
 });
 
