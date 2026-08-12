@@ -41,6 +41,7 @@ import type {
   ProductVariant,
 } from "@/types/domain";
 import { cn, formatUsd } from "@/lib/utils";
+import styles from "./catalog-experience.module.css";
 
 const copy = {
   en: {
@@ -578,10 +579,10 @@ export function CatalogExperience({
 
           <div
             className={cn(
-              "grid gap-6",
+              "gap-6",
               view === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                : "grid-cols-1",
+                ? styles.productGrid
+                : styles.listGrid,
             )}
           >
             {filteredProducts.map((product, index) => (
