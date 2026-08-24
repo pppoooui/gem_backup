@@ -421,13 +421,31 @@ export function HomeExperience({
 function Footer({ locale }: { locale: Locale }) {
   const t = copy[locale];
   const base = `/${locale}`;
+  const policyLinks = locale === "zh"
+    ? [
+        { label: "关于我们", href: `${base}/about` },
+        { label: "联系我们", href: `${base}/contact` },
+        { label: "运输政策", href: `${base}/shipping` },
+        { label: "退货与退款政策", href: `${base}/return-refund-policy` },
+        { label: "服务条款", href: `${base}/terms` },
+        { label: "隐私政策", href: `${base}/privacy` },
+      ]
+    : [
+        { label: "About Us", href: `${base}/about` },
+        { label: "Contact Us", href: `${base}/contact` },
+        { label: "Shipping Policy", href: `${base}/shipping` },
+        { label: "Return & Refund Policy", href: `${base}/return-refund-policy` },
+        { label: "Terms of Service", href: `${base}/terms` },
+        { label: "Privacy Policy", href: `${base}/privacy` },
+      ];
   return (
     <footer id="site-footer" className="bg-white px-5 pb-8 pt-10 sm:px-8">
       <div className="mx-auto flex max-w-[1320px] items-center gap-8"><span className="h-px flex-1 bg-black/8" /><Brand /><span className="h-px flex-1 bg-black/8" /></div>
-      <div className="mx-auto mt-10 grid max-w-[1320px] gap-10 border-b border-black/10 pb-10 md:grid-cols-[0.8fr_0.8fr_0.8fr_1.4fr_1.5fr]">
+      <div className="mx-auto mt-10 grid max-w-[1320px] gap-10 border-b border-black/10 pb-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.05fr_0.75fr_0.75fr_1fr_1.3fr_1.35fr]">
         <FooterList title={t.footerAbout} items={t.footerAboutLinks as string[]} />
         <FooterList title={t.footerProduct} items={t.footerProductLinks as string[]} />
         <FooterList title={t.footerService} items={t.footerServiceLinks as string[]} />
+        <FooterList title={locale === "zh" ? "政策与支持" : "Policies & Support"} items={policyLinks} />
         <div><h3 className="text-sm font-semibold">{t.footerContact}</h3><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`} className="mt-5 flex items-center gap-2 text-sm text-black/55"><Mail className="size-4" />{PUBLIC_CONTACT_EMAIL}</a><a href={`https://wa.me/${PUBLIC_CONTACT_PHONE.replace(/\D/g, "")}`} className="mt-3 flex items-center gap-2 text-sm text-black/55"><Phone className="size-4" />WhatsApp · {PUBLIC_CONTACT_PHONE}</a><a href={PUBLIC_LINE_URL} className="mt-3 flex items-center gap-2 text-sm text-black/55"><MessageCircle className="size-4" />LINE · {PUBLIC_CONTACT_PHONE}</a><p className="mt-3 flex items-start gap-2 text-sm leading-6 text-black/55"><MapPin className="mt-1 size-4 shrink-0" />{locale === "zh" ? PUBLIC_ADDRESS_ZH : PUBLIC_ADDRESS_EN}</p></div>
         <div><h3 className="text-sm font-semibold">{t.subscribe}</h3><p className="mt-4 text-sm text-black/48">{t.subscribeHint}</p><form className="mt-5 flex border border-black/18"><input type="email" aria-label={t.emailPlaceholder} placeholder={t.emailPlaceholder} className="min-w-0 flex-1 px-4 py-3 text-sm outline-none" /><button type="submit" className="bg-[#a97342] px-5 text-sm text-white">{t.subscribe}</button></form></div>
       </div>
@@ -436,6 +454,9 @@ function Footer({ locale }: { locale: Locale }) {
   );
 }
 
-function FooterList({ title, items }: { title: string; items: string[] }) {
-  return <div><h3 className="text-sm font-semibold">{title}</h3><ul className="mt-5 space-y-3 text-sm text-black/52">{items.map((item) => <li key={item}>{item}</li>)}</ul></div>;
+function FooterList({ title, items }: { title: string; items: Array<string | { label: string; href: string }> }) {
+  return <div><h3 className="text-sm font-semibold">{title}</h3><ul className="mt-5 space-y-3 text-sm text-black/52">{items.map((item) => {
+    const label = typeof item === "string" ? item : item.label;
+    return <li key={label}>{typeof item === "string" ? item : <Link href={item.href} className="transition hover:text-[#9a6a3a] hover:underline">{label}</Link>}</li>;
+  })}</ul></div>;
 }
