@@ -1,7 +1,8 @@
 import type { Product, ProductVariant } from "@/types/domain";
+import { wholesaleUnitPriceUsd } from "@/lib/catalog-pricing";
 
-// These are the public quote sizes. The catalog deliberately keeps prices out
-// of this list; customer-specific pricing is added by sales after inquiry.
+// Standard public sizes. Supabase remains the source of truth in production;
+// these values also provide a complete priced fallback during an outage.
 export const catalogSizeValues = [
   1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55,
   1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2, 2.05, 2.1, 2.15,
@@ -20,10 +21,16 @@ export function createQuoteVariant(sizeMm: string): ProductVariant {
     clarity: "VS",
     packageUnit: "1,000 pcs",
     moq: 1000,
-    stockStatus: "quote_only",
-    stockNote: "Confirm batch",
+    stockStatus: "in_stock",
+    stockNote: "Standard wholesale catalog",
     weightGrams: 0,
-    priceTiers: [{ minQuantity: 1000, priceUsd: 0, label: "Quote" }],
+    priceTiers: [
+      {
+        minQuantity: 1000,
+        priceUsd: wholesaleUnitPriceUsd(sizeMm),
+        label: "1,000+ pcs",
+      },
+    ],
   };
 }
 

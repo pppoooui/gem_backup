@@ -1110,7 +1110,9 @@ function ProductCard({
                     minimumFractionDigits: 3,
                     maximumFractionDigits: 3,
                   })}
-                  <span className="block text-xs font-normal text-slate-400">USD</span>
+                  <span className="block text-xs font-normal text-slate-400">
+                    {locale === "zh" ? "USD / 颗" : "USD / pc"}
+                  </span>
                 </span>
               </div>
             ))}

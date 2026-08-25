@@ -2,11 +2,21 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ImagePlus, Trash2, type LucideIcon } from "lucide-react";
+import { ImagePlus, Save, Trash2, type LucideIcon } from "lucide-react";
 import { products } from "@/data/products";
 import { cn } from "@/lib/utils";
 
+type ManagedVariant = {
+  id: string;
+  priceTierId?: string;
+  sizeMm: string;
+  moq: number;
+  priceUsd: number;
+};
+
 type ManagedProduct = {
+  variantId?: string;
+  priceTierId?: string;
   slug: string;
   nameEn: string;
   shape: string;
@@ -14,9 +24,11 @@ type ManagedProduct = {
   moq: number;
   priceUsd: number;
   imagePath: string;
+  variants: ManagedVariant[];
 };
 
 const starterProducts: ManagedProduct[] = products.map((product) => ({
+  variantId: product.variants[0]?.id,
   slug: product.slug,
   nameEn: product.nameEn,
   shape: product.shape,
@@ -24,6 +36,12 @@ const starterProducts: ManagedProduct[] = products.map((product) => ({
   moq: product.variants[0]?.moq ?? 0,
   priceUsd: product.variants[0]?.priceTiers[0]?.priceUsd ?? 0,
   imagePath: product.imagePath,
+  variants: product.variants.map((variant) => ({
+    id: variant.id,
+    sizeMm: variant.sizeMm,
+    moq: variant.moq,
+    priceUsd: variant.priceTiers[0]?.priceUsd ?? 0,
+  })),
 }));
 
 const blankProduct: ManagedProduct = {
@@ -34,6 +52,7 @@ const blankProduct: ManagedProduct = {
   moq: 500,
   priceUsd: 0,
   imagePath: "/products/round-1mm.png",
+  variants: [],
 };
 
 export function AdminProductManager() {
@@ -45,6 +64,7 @@ export function AdminProductManager() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingVariantId, setSavingVariantId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [mode, setMode] = useState<"fallback" | "supabase" | "validated-only">("fallback");
   const previewImagePath = draftProduct.imagePath || blankProduct.imagePath;
@@ -86,14 +106,32 @@ export function AdminProductManager() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "商品保存失败");
-      const savedProduct = (data.product ?? draftProduct) as ManagedProduct;
+      const responseProduct = (data.product ?? {}) as Partial<ManagedProduct>;
+      const savedProduct: ManagedProduct = {
+        ...draftProduct,
+        ...responseProduct,
+        variants:
+          draftProduct.variants.length > 0
+            ? draftProduct.variants.map((variant) =>
+                variant.id === responseProduct.variantId
+                  ? {
+                      ...variant,
+                      priceTierId: responseProduct.priceTierId,
+                      sizeMm: responseProduct.sizeMm ?? variant.sizeMm,
+                      moq: responseProduct.moq ?? variant.moq,
+                      priceUsd: responseProduct.priceUsd ?? variant.priceUsd,
+                    }
+                  : variant,
+              )
+            : responseProduct.variants ?? [],
+      };
 
       setManagedProducts((current) => [
         savedProduct,
         ...current.filter((item) => item.slug !== savedProduct.slug),
       ]);
       setSelectedSlug(savedProduct.slug);
-      setDraftProduct(blankProduct);
+      setDraftProduct(savedProduct);
       setMode(data.mode ?? mode);
       setStatusMessage(
         data.mode === "supabase"
@@ -118,6 +156,81 @@ export function AdminProductManager() {
     setSelectedSlug(product.slug);
     setDraftProduct(product);
     setStatusMessage("");
+  }
+
+  function updateDraftVariant(
+    variantId: string,
+    field: "moq" | "priceUsd",
+    value: number,
+  ) {
+    setDraftProduct((current) => ({
+      ...current,
+      variants: current.variants.map((variant) =>
+        variant.id === variantId ? { ...variant, [field]: value } : variant,
+      ),
+      ...(current.variantId === variantId ? { [field]: value } : {}),
+    }));
+  }
+
+  async function saveVariantPrice(variant: ManagedVariant) {
+    setSavingVariantId(variant.id);
+    setStatusMessage(`正在保存 ${variant.sizeMm} 价格...`);
+
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          variantId: variant.id,
+          priceTierId: variant.priceTierId,
+          moq: variant.moq,
+          priceUsd: variant.priceUsd,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "价格保存失败");
+
+      const savedVariant = data.variant as ManagedVariant;
+      setDraftProduct((current) => ({
+        ...current,
+        variants: current.variants.map((item) =>
+          item.id === savedVariant.id ? savedVariant : item,
+        ),
+        ...(current.variantId === savedVariant.id
+          ? {
+              priceTierId: savedVariant.priceTierId,
+              moq: savedVariant.moq,
+              priceUsd: savedVariant.priceUsd,
+            }
+          : {}),
+      }));
+      setManagedProducts((current) =>
+        current.map((product) =>
+          product.slug === selectedSlug
+            ? {
+                ...product,
+                variants: product.variants.map((item) =>
+                  item.id === savedVariant.id ? savedVariant : item,
+                ),
+                ...(product.variantId === savedVariant.id
+                  ? {
+                      priceTierId: savedVariant.priceTierId,
+                      moq: savedVariant.moq,
+                      priceUsd: savedVariant.priceUsd,
+                    }
+                  : {}),
+              }
+            : product,
+        ),
+      );
+      setMode(data.mode ?? mode);
+      setStatusMessage(`${savedVariant.sizeMm} 已保存：US$${savedVariant.priceUsd.toFixed(3)} / 颗`);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "价格保存失败");
+    } finally {
+      setSavingVariantId(null);
+      setTimeout(() => setStatusMessage(""), 4000);
+    }
   }
 
   async function uploadImage(file: File) {
@@ -180,7 +293,7 @@ export function AdminProductManager() {
           </span>
         </div>
         <p className="mt-1 text-sm text-slate-500">
-          编辑商品、上传封面图、归档暂不销售的 SKU。
+          编辑商品资料，并在规格价格表中逐项修改每个尺寸的美元批发单价。
         </p>
       </div>
       <div className="grid gap-5 p-5 xl:grid-cols-[380px_minmax(0,1fr)]">
@@ -300,62 +413,142 @@ export function AdminProductManager() {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-md border border-slate-200">
-          <div className="grid grid-cols-[1.3fr_0.55fr_0.55fr_0.55fr_42px] bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
-            <span>商品</span>
-            <span>形状</span>
-            <span>尺寸</span>
-            <span>起订量</span>
-            <span />
-          </div>
-          <div className="max-h-[420px] overflow-y-auto">
-            {loading ? (
-              <div className="px-3 py-6 text-sm text-slate-400">
-                正在加载商品...
+        <div className="min-w-0 space-y-5">
+          {selectedSlug && draftProduct.variants.length > 0 && (
+            <div className="overflow-hidden rounded-md border border-slate-200">
+              <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-3">
+                <div>
+                  <h3 className="text-sm font-semibold">规格批发价（USD / 颗）</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    共 {draftProduct.variants.length} 个尺寸，可逐项修改并立即保存。
+                  </p>
+                </div>
+                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                  后台可修改
+                </span>
               </div>
-            ) : managedProducts.map((product) => (
-              <div
-                key={product.slug}
-                className={cn(
-                  "grid grid-cols-[1.3fr_0.55fr_0.55fr_0.55fr_42px] items-center border-t border-slate-100 px-3 py-2 text-sm",
-                  selectedSlug === product.slug && "bg-[#f0f8f7]",
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => selectProduct(product)}
-                  className="flex min-w-0 items-center gap-3 text-left"
-                >
-                  <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-slate-100">
-                    <Image
-                      src={product.imagePath}
-                      alt={product.nameEn}
-                      fill
-                      className="object-cover"
-                      sizes="44px"
-                    />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate font-medium">
-                      {product.nameEn}
-                    </span>
-                    <span className="block truncate text-xs text-slate-500">
-                      {product.slug}
-                    </span>
-                  </span>
-                </button>
-                <span>{product.shape}</span>
-                <span>{product.sizeMm}</span>
-                <span>{product.moq}</span>
-                <button
-                  className="grid size-8 place-items-center rounded-md text-slate-400 hover:bg-slate-50"
-                  onClick={() => removeProduct(product.slug)}
-                  aria-label={`删除 ${product.nameEn}`}
-                >
-                  <Trash2 className="size-4" />
-                </button>
+              <div className="overflow-x-auto">
+                <div className="min-w-[500px]">
+                  <div className="grid grid-cols-[90px_110px_minmax(150px,1fr)_44px] gap-3 border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-xs font-semibold text-slate-500">
+                    <span>尺寸</span>
+                    <span>起订量</span>
+                    <span>美元单价</span>
+                    <span />
+                  </div>
+                  <div className="max-h-[520px] overflow-y-auto">
+                    {draftProduct.variants.map((variant) => (
+                      <div
+                        key={variant.id}
+                        className="grid grid-cols-[90px_110px_minmax(150px,1fr)_44px] items-center gap-3 border-t border-slate-100 px-4 py-2"
+                      >
+                        <span className="text-sm font-medium">{variant.sizeMm}</span>
+                        <input
+                          aria-label={`${variant.sizeMm} 起订量`}
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={variant.moq}
+                          onChange={(event) =>
+                            updateDraftVariant(
+                              variant.id,
+                              "moq",
+                              Number(event.target.value) || 0,
+                            )
+                          }
+                          className="h-9 rounded-md border border-slate-200 px-2 text-sm outline-none focus:border-[#005466]"
+                        />
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                          <input
+                            aria-label={`${variant.sizeMm} 美元单价`}
+                            type="number"
+                            min="0.001"
+                            step="0.001"
+                            value={variant.priceUsd}
+                            onChange={(event) =>
+                              updateDraftVariant(
+                                variant.id,
+                                "priceUsd",
+                                Number(event.target.value) || 0,
+                              )
+                            }
+                            className="h-9 w-full rounded-md border border-slate-200 pl-7 pr-2 text-sm outline-none focus:border-[#005466]"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void saveVariantPrice(variant)}
+                          disabled={savingVariantId === variant.id || variant.moq <= 0 || variant.priceUsd <= 0}
+                          className="grid size-9 place-items-center rounded-md bg-[#003f4b] text-white disabled:opacity-40"
+                          aria-label={`保存 ${variant.sizeMm} 价格`}
+                        >
+                          <Save className="size-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
+          )}
+
+          <div className="overflow-hidden rounded-md border border-slate-200">
+            <div className="grid grid-cols-[1.3fr_0.55fr_0.55fr_0.55fr_42px] bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
+              <span>商品</span>
+              <span>形状</span>
+              <span>尺寸</span>
+              <span>起订量</span>
+              <span />
+            </div>
+            <div className="max-h-[420px] overflow-y-auto">
+              {loading ? (
+                <div className="px-3 py-6 text-sm text-slate-400">
+                  正在加载商品...
+                </div>
+              ) : managedProducts.map((product) => (
+                <div
+                  key={product.slug}
+                  className={cn(
+                    "grid grid-cols-[1.3fr_0.55fr_0.55fr_0.55fr_42px] items-center border-t border-slate-100 px-3 py-2 text-sm",
+                    selectedSlug === product.slug && "bg-[#f0f8f7]",
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectProduct(product)}
+                    className="flex min-w-0 items-center gap-3 text-left"
+                  >
+                    <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                      <Image
+                        src={product.imagePath}
+                        alt={product.nameEn}
+                        fill
+                        className="object-cover"
+                        sizes="44px"
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">
+                        {product.nameEn}
+                      </span>
+                      <span className="block truncate text-xs text-slate-500">
+                        {product.slug}
+                      </span>
+                    </span>
+                  </button>
+                  <span>{product.shape}</span>
+                  <span>{product.sizeMm}</span>
+                  <span>{product.moq}</span>
+                  <button
+                    className="grid size-8 place-items-center rounded-md text-slate-400 hover:bg-slate-50"
+                    onClick={() => removeProduct(product.slug)}
+                    aria-label={`删除 ${product.nameEn}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

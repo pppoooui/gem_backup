@@ -13,6 +13,8 @@ function normalizeSlug(value: string) {
 }
 
 const productSchema = z.object({
+  variantId: z.string().uuid().optional(),
+  priceTierId: z.string().uuid().optional(),
   slug: z.string().transform(normalizeSlug).pipe(z.string().min(1)),
   nameEn: z.string().trim().min(1),
   shape: z.string().trim().min(1).default("Round"),
@@ -27,6 +29,13 @@ const productSchema = z.object({
 });
 
 type ProductPayload = z.infer<typeof productSchema>;
+
+const variantPriceSchema = z.object({
+  variantId: z.string().uuid(),
+  priceTierId: z.string().uuid().optional(),
+  moq: z.coerce.number().int().positive(),
+  priceUsd: z.coerce.number().min(0.001).max(9999),
+});
 
 function createSupabaseAdminClient() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -43,8 +52,17 @@ function createSupabaseAdminClient() {
 function toManagedProduct(product: (typeof staticProducts)[number]) {
   const variant = product.variants[0];
   const priceTier = variant?.priceTiers[0];
+  const variants = product.variants.map((item) => ({
+    id: item.id,
+    priceTierId: undefined,
+    sizeMm: item.sizeMm,
+    moq: item.moq,
+    priceUsd: item.priceTiers[0]?.priceUsd ?? 0,
+  }));
 
   return {
+    variantId: variant?.id,
+    priceTierId: undefined,
     slug: product.slug,
     nameEn: product.nameEn,
     shape: product.shape,
@@ -52,6 +70,7 @@ function toManagedProduct(product: (typeof staticProducts)[number]) {
     moq: variant?.moq ?? 0,
     priceUsd: priceTier?.priceUsd ?? 0,
     imagePath: product.imagePath,
+    variants,
   };
 }
 
@@ -92,21 +111,31 @@ async function upsertProduct(payload: ProductPayload) {
     throw new Error(productError?.message ?? "商品保存失败");
   }
 
-  const { data: variant, error: variantError } = await supabase
-    .from("product_variants")
-    .upsert(
-      {
-        product_id: product.id,
-        size_mm: payload.sizeMm,
-        color: "Colorless",
-        clarity: "VS",
-        package_unit: "pcs",
-        moq: payload.moq,
-        stock_status: "in_stock",
-        weight_grams: 0,
-      },
-      { onConflict: "product_id,size_mm,color,package_unit" },
-    )
+  const variantMutation = payload.variantId
+    ? supabase
+        .from("product_variants")
+        .update({
+          size_mm: payload.sizeMm,
+          moq: payload.moq,
+          stock_status: "in_stock",
+        })
+        .eq("id", payload.variantId)
+        .eq("product_id", product.id)
+    : supabase.from("product_variants").upsert(
+        {
+          product_id: product.id,
+          size_mm: payload.sizeMm,
+          color: "Colorless",
+          clarity: "VS",
+          package_unit: "pcs",
+          moq: payload.moq,
+          stock_status: "in_stock",
+          weight_grams: 0,
+        },
+        { onConflict: "product_id,size_mm,color,package_unit" },
+      );
+
+  const { data: variant, error: variantError } = await variantMutation
     .select("id")
     .single();
 
@@ -114,20 +143,43 @@ async function upsertProduct(payload: ProductPayload) {
     throw new Error(variantError?.message ?? "商品规格保存失败");
   }
 
-  const { error: priceError } = await supabase.from("price_tiers").upsert(
-    {
-      variant_id: variant.id,
-      min_quantity: payload.moq,
-      price_usd: payload.priceUsd,
-      label: `${payload.moq}+ pcs`,
-    },
-    { onConflict: "variant_id,min_quantity" },
-  );
+  const priceValues = {
+    variant_id: variant.id,
+    min_quantity: payload.moq,
+    price_usd: payload.priceUsd,
+    label: `${payload.moq.toLocaleString("en-US")}+ pcs`,
+  };
+  const { data: savedPriceTier, error: priceError } = payload.priceTierId
+    ? await supabase
+        .from("price_tiers")
+        .update(priceValues)
+        .eq("id", payload.priceTierId)
+        .eq("variant_id", variant.id)
+        .select("id")
+        .single()
+    : await supabase.from("price_tiers").upsert(priceValues, {
+        onConflict: "variant_id,min_quantity",
+      }).select("id").single();
 
-  if (priceError) throw priceError;
+  if (priceError || !savedPriceTier) {
+    throw new Error(priceError?.message ?? "价格保存失败");
+  }
 
   return {
-    product: payload,
+    product: {
+      ...payload,
+      variantId: variant.id,
+      priceTierId: savedPriceTier.id,
+      variants: [
+        {
+          id: variant.id,
+          priceTierId: savedPriceTier.id,
+          sizeMm: payload.sizeMm,
+          moq: payload.moq,
+          priceUsd: payload.priceUsd,
+        },
+      ],
+    },
     mode: "supabase",
   };
 }
@@ -156,6 +208,7 @@ export async function GET() {
           size_mm,
           moq,
           price_tiers (
+            id,
             min_quantity,
             price_usd
           )
@@ -178,8 +231,23 @@ export async function GET() {
             (a, b) => Number(a.min_quantity) - Number(b.min_quantity),
           );
           const priceTier = priceTiers[0];
+          const managedVariants = variants.map((item) => {
+            const tiers = [...(item.price_tiers ?? [])].sort(
+              (a, b) => Number(a.min_quantity) - Number(b.min_quantity),
+            );
+            const tier = tiers[0];
+            return {
+              id: item.id,
+              priceTierId: tier?.id,
+              sizeMm: item.size_mm,
+              moq: item.moq,
+              priceUsd: tier?.price_usd ?? 0,
+            };
+          });
 
           return {
+            variantId: variant?.id,
+            priceTierId: priceTier?.id,
             slug: product.slug,
             nameEn: product.name_en,
             shape: product.shape,
@@ -187,6 +255,7 @@ export async function GET() {
             moq: variant?.moq ?? 0,
             priceUsd: priceTier?.price_usd ?? 0,
             imagePath: product.cover_image_path ?? "/products/round-1mm.png",
+            variants: managedVariants,
           };
         }) ?? [],
       mode: "supabase",
@@ -214,6 +283,87 @@ export async function POST(request: Request) {
           ? error.message
           : "商品保存失败";
 
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const payload = variantPriceSchema.parse(await request.json());
+    const supabase = createSupabaseAdminClient();
+    if (!supabase) {
+      return NextResponse.json({ variant: payload, mode: "validated-only" });
+    }
+
+    const { data: variant, error: variantError } = await supabase
+      .from("product_variants")
+      .update({ moq: payload.moq, stock_status: "in_stock" })
+      .eq("id", payload.variantId)
+      .select("id,product_id,size_mm")
+      .single();
+
+    if (variantError || !variant) {
+      throw new Error(variantError?.message ?? "商品规格不存在");
+    }
+
+    const priceValues = {
+      variant_id: variant.id,
+      min_quantity: payload.moq,
+      price_usd: payload.priceUsd,
+      label: `${payload.moq.toLocaleString("en-US")}+ pcs`,
+    };
+
+    let priceTierId = payload.priceTierId;
+    if (priceTierId) {
+      const { data, error } = await supabase
+        .from("price_tiers")
+        .update(priceValues)
+        .eq("id", priceTierId)
+        .eq("variant_id", variant.id)
+        .select("id")
+        .single();
+      if (error || !data) throw new Error(error?.message ?? "价格保存失败");
+      priceTierId = data.id;
+    } else {
+      const { data, error } = await supabase
+        .from("price_tiers")
+        .upsert(priceValues, { onConflict: "variant_id,min_quantity" })
+        .select("id")
+        .single();
+      if (error || !data) throw new Error(error?.message ?? "价格保存失败");
+      priceTierId = data.id;
+    }
+
+    const { data: product } = await supabase
+      .from("products")
+      .select("slug")
+      .eq("id", variant.product_id)
+      .maybeSingle();
+
+    revalidatePath("/en/products");
+    revalidatePath("/zh/products");
+    if (product?.slug) {
+      revalidatePath(`/en/products/${product.slug}`);
+      revalidatePath(`/zh/products/${product.slug}`);
+    }
+
+    return NextResponse.json({
+      variant: {
+        id: variant.id,
+        priceTierId,
+        sizeMm: variant.size_mm,
+        moq: payload.moq,
+        priceUsd: payload.priceUsd,
+      },
+      mode: "supabase",
+    });
+  } catch (error) {
+    const message =
+      error instanceof z.ZodError
+        ? error.issues.map((issue) => issue.message).join("; ")
+        : error instanceof Error
+          ? error.message
+          : "价格保存失败";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
