@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getCartLines, clearCart } from "@/lib/cart-store";
+import { unitPriceForQuantity } from "@/lib/product-pricing";
 import { formatUsd } from "@/lib/utils";
 import type {
   CartLine,
@@ -155,20 +156,19 @@ export default function CheckoutPage({
           const variant = product?.variants.find((v) => v.id === line.variantId);
           if (!product || !variant) return null;
 
-          const tier =
-            [...variant.priceTiers]
-              .reverse()
-              .find((t) => line.quantity >= t.minQuantity) ??
-            variant.priceTiers[0];
-
-          const lineTotalUsd = Number((tier.priceUsd * line.quantity).toFixed(2));
+          const unitPriceUsd = unitPriceForQuantity(
+            variant,
+            line.quantity,
+            line.grade ?? "5A",
+          );
+          const lineTotalUsd = Number((unitPriceUsd * line.quantity).toFixed(2));
 
           return {
             cartLine: line,
             product,
             variant,
             quantity: line.quantity,
-            unitPriceUsd: tier.priceUsd,
+            unitPriceUsd,
             lineTotalUsd,
           };
         })
@@ -408,7 +408,7 @@ export default function CheckoutPage({
                         : line.product.nameZh}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {line.variant.sizeMm} · {line.product.grade} ·{" "}
+                      {line.variant.sizeMm} · {line.cartLine.grade ?? "5A"} ·{" "}
                       {line.variant.color}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">

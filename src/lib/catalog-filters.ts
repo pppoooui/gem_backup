@@ -80,8 +80,14 @@ export function filterCatalogProducts(
         .includes(query);
     const matchesShape =
       filters.shapes.length === 0 || filters.shapes.includes(product.shape);
+    const availableGrades = product.variants.some(
+      (variant) => (variant.price3AUsd ?? 0) > 0,
+    )
+      ? ["3A", "5A"]
+      : [product.grade];
     const matchesGrade =
-      filters.grades.length === 0 || filters.grades.includes(product.grade);
+      filters.grades.length === 0 ||
+      filters.grades.some((grade) => availableGrades.includes(grade));
     const matchesCut =
       filters.cuts.length === 0 || filters.cuts.includes(product.cut);
 

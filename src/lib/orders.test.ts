@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { products } from "@/data/products";
 import type { CheckoutOrderInput } from "@/lib/orders";
 import type { Product } from "@/types/domain";
 import {
@@ -194,6 +195,47 @@ describe("checkout orders", () => {
       productId: "live-product",
       variantId: "live-variant",
       lineTotalUsd: 25,
+    });
+  });
+
+  it("uses the selected 3A price for server-side order totals", () => {
+    resetOrderStoreForTests();
+
+    const liveProduct: Product = {
+      ...products[0],
+      id: "grade-price-product",
+      variants: [
+        {
+          ...products[0].variants[0],
+          id: "grade-price-variant",
+          moq: 1000,
+          price3AUsd: 0.085,
+          priceTiers: [
+            { minQuantity: 1000, priceUsd: 0.1, label: "1,000+ pcs" },
+          ],
+        },
+      ],
+    };
+
+    const result = createCheckoutOrder(
+      {
+        ...checkoutInput,
+        lines: [
+          {
+            productId: liveProduct.id,
+            variantId: "grade-price-variant",
+            grade: "3A",
+            quantity: 1000,
+          },
+        ],
+      },
+      { tokenBytes: () => "grade-token", catalog: [liveProduct] },
+    );
+
+    expect(result.order.lines[0]).toMatchObject({
+      grade: "3A",
+      unitPriceUsd: 0.085,
+      lineTotalUsd: 85,
     });
   });
 

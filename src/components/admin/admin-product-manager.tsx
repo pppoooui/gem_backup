@@ -12,6 +12,7 @@ type ManagedVariant = {
   sizeMm: string;
   moq: number;
   priceUsd: number;
+  price3AUsd: number;
 };
 
 type ManagedProduct = {
@@ -41,6 +42,9 @@ const starterProducts: ManagedProduct[] = products.map((product) => ({
     sizeMm: variant.sizeMm,
     moq: variant.moq,
     priceUsd: variant.priceTiers[0]?.priceUsd ?? 0,
+    price3AUsd:
+      variant.price3AUsd ??
+      Math.round((variant.priceTiers[0]?.priceUsd ?? 0) * 0.85 * 1000) / 1000,
   })),
 }));
 
@@ -160,7 +164,7 @@ export function AdminProductManager() {
 
   function updateDraftVariant(
     variantId: string,
-    field: "moq" | "priceUsd",
+    field: "moq" | "priceUsd" | "price3AUsd",
     value: number,
   ) {
     setDraftProduct((current) => ({
@@ -185,6 +189,7 @@ export function AdminProductManager() {
           priceTierId: variant.priceTierId,
           moq: variant.moq,
           priceUsd: variant.priceUsd,
+          price3AUsd: variant.price3AUsd,
         }),
       });
       const data = await res.json();
@@ -224,7 +229,9 @@ export function AdminProductManager() {
         ),
       );
       setMode(data.mode ?? mode);
-      setStatusMessage(`${savedVariant.sizeMm} 已保存：US$${savedVariant.priceUsd.toFixed(3)} / 颗`);
+      setStatusMessage(
+        `${savedVariant.sizeMm} 已保存：3A US$${savedVariant.price3AUsd.toFixed(3)}，5A US$${savedVariant.priceUsd.toFixed(3)} / 颗`,
+      );
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : "价格保存失败");
     } finally {
@@ -418,7 +425,7 @@ export function AdminProductManager() {
             <div className="overflow-hidden rounded-md border border-slate-200">
               <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-3">
                 <div>
-                  <h3 className="text-sm font-semibold">规格批发价（USD / 颗）</h3>
+                  <h3 className="text-sm font-semibold">3A / 5A 规格批发价（USD / 颗）</h3>
                   <p className="mt-0.5 text-xs text-slate-500">
                     共 {draftProduct.variants.length} 个尺寸，可逐项修改并立即保存。
                   </p>
@@ -429,17 +436,18 @@ export function AdminProductManager() {
               </div>
               <div className="overflow-x-auto">
                 <div className="min-w-[500px]">
-                  <div className="grid grid-cols-[90px_110px_minmax(150px,1fr)_44px] gap-3 border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-xs font-semibold text-slate-500">
+                  <div className="grid grid-cols-[78px_92px_minmax(110px,1fr)_minmax(110px,1fr)_44px] gap-3 border-t border-slate-100 bg-slate-50/60 px-4 py-2 text-xs font-semibold text-slate-500">
                     <span>尺寸</span>
                     <span>起订量</span>
-                    <span>美元单价</span>
+                    <span>3A 单价</span>
+                    <span>5A 单价</span>
                     <span />
                   </div>
                   <div className="max-h-[520px] overflow-y-auto">
                     {draftProduct.variants.map((variant) => (
                       <div
                         key={variant.id}
-                        className="grid grid-cols-[90px_110px_minmax(150px,1fr)_44px] items-center gap-3 border-t border-slate-100 px-4 py-2"
+                        className="grid grid-cols-[78px_92px_minmax(110px,1fr)_minmax(110px,1fr)_44px] items-center gap-3 border-t border-slate-100 px-4 py-2"
                       >
                         <span className="text-sm font-medium">{variant.sizeMm}</span>
                         <input
@@ -460,7 +468,25 @@ export function AdminProductManager() {
                         <div className="relative">
                           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
                           <input
-                            aria-label={`${variant.sizeMm} 美元单价`}
+                            aria-label={`${variant.sizeMm} 3A 美元单价`}
+                            type="number"
+                            min="0.001"
+                            step="0.001"
+                            value={variant.price3AUsd}
+                            onChange={(event) =>
+                              updateDraftVariant(
+                                variant.id,
+                                "price3AUsd",
+                                Number(event.target.value) || 0,
+                              )
+                            }
+                            className="h-9 w-full rounded-md border border-slate-200 pl-7 pr-2 text-sm outline-none focus:border-[#005466]"
+                          />
+                        </div>
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+                          <input
+                            aria-label={`${variant.sizeMm} 5A 美元单价`}
                             type="number"
                             min="0.001"
                             step="0.001"
@@ -478,7 +504,7 @@ export function AdminProductManager() {
                         <button
                           type="button"
                           onClick={() => void saveVariantPrice(variant)}
-                          disabled={savingVariantId === variant.id || variant.moq <= 0 || variant.priceUsd <= 0}
+                          disabled={savingVariantId === variant.id || variant.moq <= 0 || variant.priceUsd <= 0 || variant.price3AUsd <= 0}
                           className="grid size-9 place-items-center rounded-md bg-[#003f4b] text-white disabled:opacity-40"
                           aria-label={`保存 ${variant.sizeMm} 价格`}
                         >

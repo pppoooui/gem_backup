@@ -24,6 +24,21 @@ import {
 import type { Product } from "@/types/domain";
 
 const fallbackProducts = createQuoteCatalogProducts();
+const threeAPriceSettingKey = "catalog_3a_prices_json";
+
+function parseThreeAPriceOverrides(value?: string | null): Record<string, number> {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .map(([size, price]) => [size, Number(price)] as const)
+        .filter((entry) => Number.isFinite(entry[1]) && entry[1] > 0),
+    );
+  } catch {
+    return {};
+  }
+}
 
 async function fetchFromSupabase(): Promise<Product[]> {
   if (
@@ -41,9 +56,8 @@ async function fetchFromSupabase(): Promise<Product[]> {
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
-  const { data, error } = await supabase
-    .from("products")
-    .select(
+  const [productsResult, threeASettingResult] = await Promise.all([
+    supabase.from("products").select(
       `
       id,
       sku,
@@ -78,10 +92,15 @@ async function fetchFromSupabase(): Promise<Product[]> {
           label
         )
       )
-    `,
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+    `).eq("status", "published").order("created_at", { ascending: false }),
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", threeAPriceSettingKey)
+      .maybeSingle(),
+  ]);
+
+  const { data, error } = productsResult;
 
   if (error || !data) {
     console.warn("[supabase] products fetch failed, using static fallback", error?.message);
@@ -126,7 +145,26 @@ async function fetchFromSupabase(): Promise<Product[]> {
     }))
     .filter((product) => product.variants.length > 0);
 
-  const publicProducts = toPublicRoundColorlessProducts(mapped);
+  const threeAOverrides = parseThreeAPriceOverrides(
+    threeASettingResult.data?.value,
+  );
+  const gradePricedProducts = mapped.map((product) => {
+    let previousFiveAPrice: number | undefined;
+    return {
+      ...product,
+      variants: product.variants.map((variant) => {
+        const fiveAPrice = variant.priceTiers[0]?.priceUsd ?? 0;
+        const price3AUsd =
+          threeAOverrides[variant.sizeMm] ??
+          previousFiveAPrice ??
+          Math.round(fiveAPrice * 0.85 * 1000) / 1000;
+        previousFiveAPrice = fiveAPrice;
+        return { ...variant, price3AUsd };
+      }),
+    };
+  });
+
+  const publicProducts = toPublicRoundColorlessProducts(gradePricedProducts);
   if (publicProducts.length === 0) return fallbackProducts;
   return publicProducts.flatMap((product) =>
     product.slug === "round-white-cubic-zirconia"

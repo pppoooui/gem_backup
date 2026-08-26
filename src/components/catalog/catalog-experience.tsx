@@ -41,6 +41,10 @@ import type {
   ProductVariant,
 } from "@/types/domain";
 import { cn, formatUsd } from "@/lib/utils";
+import {
+  priceTiersForGrade,
+  unitPriceForQuantity,
+} from "@/lib/product-pricing";
 import styles from "./catalog-experience.module.css";
 
 const copy = {
@@ -186,11 +190,12 @@ function lineProduct(line: CartLine, products: Product[]) {
   return { product, variant };
 }
 
-function lineTotal(variant: ProductVariant, quantity: number) {
-  const tier = [...variant.priceTiers]
-    .reverse()
-    .find((item) => quantity >= item.minQuantity);
-  return (tier?.priceUsd ?? variant.priceTiers[0]?.priceUsd ?? 0) * quantity;
+function lineTotal(
+  variant: ProductVariant,
+  quantity: number,
+  grade: "3A" | "5A" = "5A",
+) {
+  return unitPriceForQuantity(variant, quantity, grade) * quantity;
 }
 
 function cartLineKey(line: CartLine) {
@@ -268,7 +273,9 @@ export function CatalogExperience({
   const subtotal = useMemo(() => {
     return cart.reduce((sum, line) => {
       const { variant } = lineProduct(line, products);
-      return variant ? sum + lineTotal(variant, line.quantity) : sum;
+      return variant
+        ? sum + lineTotal(variant, line.quantity, line.grade ?? "5A")
+        : sum;
     }, 0);
   }, [cart, products]);
 
@@ -1003,6 +1010,7 @@ function ProductCard({
     product.variants.find((item) => item.id === selectedVariantId) ??
     product.variants[0];
   const [isAdded, setIsAdded] = useState(false);
+  const visiblePriceTiers = priceTiersForGrade(variant, selectedGrade);
   const statusText =
     variant.stockStatus === "in_stock"
       ? t.inStock
@@ -1098,8 +1106,8 @@ function ProductCard({
             <span>{t.moq}</span>
             <span>{variant.moq.toLocaleString()} pcs</span>
           </div>
-          {showPrices && variant.priceTiers.some((tier) => tier.priceUsd > 0) ? <div className="space-y-2">
-            {variant.priceTiers.filter((tier) => tier.priceUsd > 0).map((tier) => (
+          {showPrices && visiblePriceTiers.some((tier) => tier.priceUsd > 0) ? <div className="space-y-2">
+            {visiblePriceTiers.filter((tier) => tier.priceUsd > 0).map((tier) => (
               <div
                 key={tier.label}
                 className="flex items-start justify-between text-sm"
@@ -1350,8 +1358,8 @@ function CartPanel({
                     </button>
                   </div>
                   {showPrices ? <p className="text-sm font-semibold">
-                    {lineTotal(variant, line.quantity) > 0
-                      ? formatUsd(lineTotal(variant, line.quantity))
+                    {lineTotal(variant, line.quantity, line.grade ?? "5A") > 0
+                      ? formatUsd(lineTotal(variant, line.quantity, line.grade ?? "5A"))
                       : locale === "zh"
                         ? "待报价"
                         : "Pending quote"}

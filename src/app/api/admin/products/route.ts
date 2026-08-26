@@ -4,6 +4,22 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { products as staticProducts } from "@/data/products";
 
+const threeAPriceSettingKey = "catalog_3a_prices_json";
+
+function parseThreeAPrices(value?: string | null): Record<string, number> {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .map(([size, price]) => [size, Number(price)] as const)
+        .filter((entry) => Number.isFinite(entry[1]) && entry[1] > 0),
+    );
+  } catch {
+    return {};
+  }
+}
+
 function normalizeSlug(value: string) {
   return value
     .trim()
@@ -35,6 +51,7 @@ const variantPriceSchema = z.object({
   priceTierId: z.string().uuid().optional(),
   moq: z.coerce.number().int().positive(),
   priceUsd: z.coerce.number().min(0.001).max(9999),
+  price3AUsd: z.coerce.number().min(0.001).max(9999),
 });
 
 function createSupabaseAdminClient() {
@@ -58,6 +75,9 @@ function toManagedProduct(product: (typeof staticProducts)[number]) {
     sizeMm: item.sizeMm,
     moq: item.moq,
     priceUsd: item.priceTiers[0]?.priceUsd ?? 0,
+    price3AUsd:
+      item.price3AUsd ??
+      Math.round((item.priceTiers[0]?.priceUsd ?? 0) * 0.85 * 1000) / 1000,
   }));
 
   return {
@@ -195,9 +215,8 @@ export async function GET() {
       });
     }
 
-    const { data, error } = await supabase
-      .from("products")
-      .select(
+    const [productsResult, threeASettingResult] = await Promise.all([
+      supabase.from("products").select(
         `
         slug,
         name_en,
@@ -213,12 +232,18 @@ export async function GET() {
             price_usd
           )
         )
-      `,
-      )
-      .neq("status", "archived")
-      .order("created_at", { ascending: false });
+      `).neq("status", "archived").order("created_at", { ascending: false }),
+      supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", threeAPriceSettingKey)
+        .maybeSingle(),
+    ]);
+
+    const { data, error } = productsResult;
 
     if (error) throw error;
+    const threeAPrices = parseThreeAPrices(threeASettingResult.data?.value);
 
     return NextResponse.json({
       products:
@@ -231,17 +256,25 @@ export async function GET() {
             (a, b) => Number(a.min_quantity) - Number(b.min_quantity),
           );
           const priceTier = priceTiers[0];
+          let previousFiveAPrice: number | undefined;
           const managedVariants = variants.map((item) => {
             const tiers = [...(item.price_tiers ?? [])].sort(
               (a, b) => Number(a.min_quantity) - Number(b.min_quantity),
             );
             const tier = tiers[0];
+            const fiveAPrice = Number(tier?.price_usd ?? 0);
+            const price3AUsd =
+              threeAPrices[item.size_mm] ??
+              previousFiveAPrice ??
+              Math.round(fiveAPrice * 0.85 * 1000) / 1000;
+            previousFiveAPrice = fiveAPrice;
             return {
               id: item.id,
               priceTierId: tier?.id,
               sizeMm: item.size_mm,
               moq: item.moq,
-              priceUsd: tier?.price_usd ?? 0,
+              priceUsd: fiveAPrice,
+              price3AUsd,
             };
           });
 
@@ -334,6 +367,29 @@ export async function PATCH(request: Request) {
       priceTierId = data.id;
     }
 
+    const { data: threeASetting, error: threeAReadError } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", threeAPriceSettingKey)
+      .maybeSingle();
+    if (threeAReadError) throw threeAReadError;
+
+    const threeAPrices = parseThreeAPrices(threeASetting?.value);
+    threeAPrices[variant.size_mm] = payload.price3AUsd;
+    const { error: threeAWriteError } = await supabase.from("site_settings").upsert(
+      {
+        key: threeAPriceSettingKey,
+        value: JSON.stringify(threeAPrices),
+        label_en: "3A catalog prices by size",
+        label_zh: "3A 各尺寸目录价格",
+        description_en: "Admin-managed 3A USD unit prices keyed by size.",
+        description_zh: "后台按尺寸管理的 3A 美元单价。",
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" },
+    );
+    if (threeAWriteError) throw threeAWriteError;
+
     const { data: product } = await supabase
       .from("products")
       .select("slug")
@@ -354,6 +410,7 @@ export async function PATCH(request: Request) {
         sizeMm: variant.size_mm,
         moq: payload.moq,
         priceUsd: payload.priceUsd,
+        price3AUsd: payload.price3AUsd,
       },
       mode: "supabase",
     });

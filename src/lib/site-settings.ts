@@ -77,7 +77,10 @@ export const managedSiteSettingKeys = new Set(
   managedSiteSettings.map((setting) => setting.key),
 );
 
-const retiredSiteSettingKeys = new Set(["catalog_show_product_details"]);
+const retiredSiteSettingKeys = new Set([
+  "catalog_show_product_details",
+  "catalog_3a_prices_json",
+]);
 
 export function isEnabledSetting(value: string | undefined) {
   return value?.trim().toLowerCase() === "true";

@@ -14,6 +14,9 @@ export const catalogSizeValues = [
 export const catalogSizeOptions = catalogSizeValues.map((value) => `${value} mm`);
 
 export function createQuoteVariant(sizeMm: string): ProductVariant {
+  const sizeIndex = catalogSizeOptions.indexOf(sizeMm);
+  const previousSize = sizeIndex > 0 ? catalogSizeOptions[sizeIndex - 1] : null;
+  const fiveAPrice = wholesaleUnitPriceUsd(sizeMm);
   return {
     id: `round-white-${sizeMm.replace(".", "-")}`,
     sizeMm,
@@ -24,10 +27,13 @@ export function createQuoteVariant(sizeMm: string): ProductVariant {
     stockStatus: "in_stock",
     stockNote: "Standard wholesale catalog",
     weightGrams: 0,
+    price3AUsd: previousSize
+      ? wholesaleUnitPriceUsd(previousSize)
+      : Math.round(fiveAPrice * 0.85 * 1000) / 1000,
     priceTiers: [
       {
         minQuantity: 1000,
-        priceUsd: wholesaleUnitPriceUsd(sizeMm),
+        priceUsd: fiveAPrice,
         label: "1,000+ pcs",
       },
     ],

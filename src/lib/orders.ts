@@ -7,6 +7,7 @@ import { paymentMethods, products } from "@/data/products";
 import { notifyNewOrder } from "@/lib/notifications";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { getPublishedProducts } from "@/lib/products-supabase";
+import { unitPriceForQuantity } from "@/lib/product-pricing";
 import type {
   AdminOrder,
   CartLine,
@@ -322,10 +323,11 @@ function resolveOrderLine(
     throw new CheckoutInputError(`${variant.id} quantity is below MOQ`);
   }
 
-  const tier = [...variant.priceTiers]
-    .reverse()
-    .find((item) => line.quantity >= item.minQuantity);
-  const unitPriceUsd = tier?.priceUsd ?? variant.priceTiers[0]?.priceUsd ?? 0;
+  const unitPriceUsd = unitPriceForQuantity(
+    variant,
+    line.quantity,
+    line.grade ?? "5A",
+  );
   const lineTotalUsd = Number((unitPriceUsd * line.quantity).toFixed(2));
 
   return {

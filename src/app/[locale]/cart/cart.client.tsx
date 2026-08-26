@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { clearCart, getCartLines, setCartLines } from "@/lib/cart-store";
+import { unitPriceForQuantity } from "@/lib/product-pricing";
 import { formatUsd } from "@/lib/utils";
 import type { CartLine, Locale, Product } from "@/types/domain";
 import {
@@ -80,23 +81,25 @@ export default function CartPage({
           (v) => v.id === line.variantId,
         );
         if (!variant) return null;
-        const tier =
-          [...variant.priceTiers]
-            .reverse()
-            .find((t) => line.quantity >= t.minQuantity) ??
-          variant.priceTiers[0];
-        const lineTotal = tier.priceUsd * line.quantity;
+        const unitPriceUsd = unitPriceForQuantity(
+          variant,
+          line.quantity,
+          line.grade ?? "5A",
+        );
+        const lineTotal = unitPriceUsd * line.quantity;
         return {
           product,
           variant,
+          grade: line.grade ?? "5A",
           quantity: line.quantity,
-          unitPriceUsd: tier.priceUsd,
+          unitPriceUsd,
           lineTotalUsd: lineTotal,
         };
       })
       .filter(Boolean) as {
       product: (typeof products)[number];
       variant: (typeof products)[number]["variants"][number];
+      grade: "3A" | "5A";
       quantity: number;
       unitPriceUsd: number;
       lineTotalUsd: number;
@@ -199,7 +202,7 @@ export default function CartPage({
                         : line.product.nameZh}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {line.variant.sizeMm} · {line.variant.color} · {line.product.grade}
+                      {line.variant.sizeMm} · {line.variant.color} · {line.grade}
                     </p>
                   </div>
                   <button

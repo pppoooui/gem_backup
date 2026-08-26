@@ -143,6 +143,7 @@ export type ProductVariant = {
   stockStatus: "in_stock" | "low_stock" | "quote_only";
   stockNote?: string;
   weightGrams: number;
+  price3AUsd?: number;
   priceTiers: PriceTier[];
 };
 
