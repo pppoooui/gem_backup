@@ -358,6 +358,9 @@ export function HomeExperience({
               </article>
             ))}
           </div>
+          <a href="/media/cz-casting-process.jpg" target="_blank" rel="noopener noreferrer" className="mt-6 block" aria-label={locale === "zh" ? "查看完整铸造流程图" : "View full casting process image"}>
+            <Image src="/media/cz-casting-process.jpg" alt={locale === "zh" ? "立方氧化锆蜡镶铸造流程：蜡模镶石、焙烧、金属浇铸和成品检查" : "Cubic zirconia casting process: wax setting, burnout, metal casting and final inspection"} width={1376} height={768} sizes="(max-width: 1320px) 100vw, 1256px" className="h-auto w-full" />
+          </a>
         </div>
       </section>
 

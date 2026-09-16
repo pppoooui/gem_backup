@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import {
   FACTORY_VIDEO_PLAYBACK_RATE,
   factoryVideos,
@@ -9,6 +10,12 @@ import type { Locale } from "@/types/domain";
 
 export function FactoryVideoGrid({ locale }: { locale: Locale }) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setSlide((current) => (current + 1) % 3), 3000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const setPlaybackRate = (video: HTMLVideoElement) => {
@@ -35,7 +42,7 @@ export function FactoryVideoGrid({ locale }: { locale: Locale }) {
 
   return (
     <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {factoryVideos.map((video, index) => (
+      {factoryVideos.slice(0, 3).map((video, index) => (
         <div key={video.src} className="aspect-[320/243] overflow-hidden xl:aspect-[80/81]">
           <video
             ref={(element) => {
@@ -53,6 +60,11 @@ export function FactoryVideoGrid({ locale }: { locale: Locale }) {
           </video>
         </div>
       ))}
+      <div className="relative aspect-[320/243] overflow-hidden bg-black xl:aspect-[80/81]" aria-label={locale === "zh" ? "锆石项链展示" : "Cubic zirconia necklace slideshow"} data-necklace-slide={slide + 1}>
+        {[1, 2, 3].map((number, index) => (
+          <Image key={number} src={`/media/necklace-slide-${number}.jpg`} alt={locale === "zh" ? `锆石项链 ${number}` : `Cubic zirconia necklace ${number}`} fill sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw" className={`object-contain transition-opacity duration-700 motion-reduce:transition-none ${slide === index ? "opacity-100" : "opacity-0"}`} aria-hidden={slide !== index} />
+        ))}
+      </div>
     </div>
   );
 }
