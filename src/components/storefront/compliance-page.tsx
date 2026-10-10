@@ -171,7 +171,10 @@ export function CompliancePage({
 
       <footer className="border-t border-black/10 bg-white px-5 py-7 text-xs text-black/44 sm:px-8">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {PUBLIC_SITE_NAME}. {t.rights}</p>
+          <div className="leading-6">
+            <p>© {new Date().getFullYear()} {PUBLIC_SITE_NAME}. {t.rights}</p>
+            <p>© {new Date().getFullYear()} Dafucang (Fujian) Supply Chain Co., Ltd. All rights reserved.</p>
+          </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href={`${base}/return-refund-policy`}>{t.returns}</Link>
             <Link href={`${base}/terms`}>{t.terms}</Link>
