@@ -1,15 +1,7 @@
 services:
   dfcgem-web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        APP_VERSION: ${APP_VERSION:-grid4-force-20260812}
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-    # Built by .github/workflows/docker-image.yml. On the small server deploy
-    # with `docker compose pull && docker compose up -d` (never --build there).
+    # Built by .github/workflows/docker-image.yml. No build section on purpose:
+    # building on the 447MB server freezes it, so compose can only pull.
     image: ${DFCGEM_IMAGE:-ghcr.io/pppoooui/gem_backup:latest}
     container_name: dfcgem-web
     restart: unless-stopped
