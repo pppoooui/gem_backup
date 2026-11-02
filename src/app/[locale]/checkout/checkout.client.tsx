@@ -16,11 +16,16 @@ import type {
 } from "@/types/domain";
 import {
   ArrowLeft,
+  ChevronDown,
   Loader2,
   Package,
   ShieldCheck,
   Truck,
 } from "lucide-react";
+import {
+  PaymentMethodPicker,
+  preferredPaymentProvider,
+} from "@/components/payments/payment-method-picker";
 
 const copy = {
   en: {
@@ -50,7 +55,10 @@ const copy = {
     iec: "Import / Export ID (optional)",
     iecHint: "Customs registration number",
     payment: "Payment Method",
-    selectPayment: "Select a payment method",
+    paymentNote:
+      "Sales confirms shipping and the final amount, then a secure Pay now button appears on your order page.",
+    optionalDetails: "Company & shipping address (optional)",
+    optionalHint: "Skip this if you prefer to confirm it with sales on WhatsApp.",
     cartEmpty: "Your cart is empty",
     cartEmptyBody: "Add products before checking out.",
     browseProducts: "Browse Products",
@@ -92,8 +100,10 @@ const copy = {
     gstinHint: "当地税号或 VAT 号码",
     iec: "进出口编号（可选）",
     iecHint: "海关登记编号",
-    payment: "收款方式",
-    selectPayment: "选择收款方式",
+    payment: "付款方式",
+    paymentNote: "客服确认运费和最终金额后，订单页会出现安全的“立即支付”按钮。",
+    optionalDetails: "公司与收货地址（可选）",
+    optionalHint: "也可以稍后在 WhatsApp 上和客服确认。",
     cartEmpty: "购物车为空",
     cartEmptyBody: "请先添加商品再结账。",
     browseProducts: "浏览商品",
@@ -203,19 +213,17 @@ export default function CheckoutPage({
     );
   }
 
-  const enabledPaymentMethods = paymentMethods;
+  const enabledPaymentMethods = paymentMethods.filter((m) => m.enabled);
+  const activeProvider =
+    selectedProvider || preferredPaymentProvider(enabledPaymentMethods);
   const isFormValid =
-    companyName.trim().length >= 2 &&
     contactName.trim().length >= 2 &&
     whatsapp.trim().length >= 8 &&
     email.trim() !== "" &&
     email.includes("@") &&
     country.trim().length >= 2 &&
-    city.trim().length >= 2 &&
-    pinCode.trim().length >= 3 &&
-    addressLine1.trim().length >= 5 &&
     validCartLines.length > 0 &&
-    selectedProvider !== "";
+    activeProvider !== "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -231,7 +239,7 @@ export default function CheckoutPage({
         body: JSON.stringify({
           locale,
           lines: validCartLines,
-          selectedPaymentProvider: selectedProvider,
+          selectedPaymentProvider: activeProvider,
           customer: {
             companyName: companyName.trim(),
             contactName: contactName.trim(),
@@ -295,13 +303,6 @@ export default function CheckoutPage({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                label={t.companyName}
-                hint={t.companyNameHint}
-                value={companyName}
-                onChange={setCompanyName}
-                required
-              />
-              <Field
                 label={t.contactName}
                 hint={t.contactNameHint}
                 value={contactName}
@@ -314,6 +315,7 @@ export default function CheckoutPage({
                 value={whatsapp}
                 onChange={setWhatsapp}
                 required
+                inputMode="tel"
               />
               <Field
                 label={t.email}
@@ -330,48 +332,63 @@ export default function CheckoutPage({
                 onChange={setCountry}
                 required
               />
-              <Field
-                label={t.city}
-                hint={t.cityHint}
-                value={city}
-                onChange={setCity}
-                required
-              />
-              <Field
-                label={t.pinCode}
-                hint={t.pinCodeHint}
-                value={pinCode}
-                onChange={setPinCode}
-                required
-                maxLength={16}
-                inputMode="text"
-              />
-              <Field
-                label={t.addressLine1}
-                hint={t.addressLine1Hint}
-                value={addressLine1}
-                onChange={setAddressLine1}
-                required
-              />
-              <Field
-                label={t.landmark}
-                hint={t.landmarkHint}
-                value={landmark}
-                onChange={setLandmark}
-              />
-              <Field
-                label={t.gstin}
-                hint={t.gstinHint}
-                value={gstin}
-                onChange={setGstin}
-              />
-              <Field
-                label={t.iec}
-                hint={t.iecHint}
-                value={iec}
-                onChange={setIec}
-              />
             </div>
+
+            <details className="group mt-5 rounded-md border border-slate-200">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-700">
+                {t.optionalDetails}
+                <ChevronDown className="size-4 shrink-0 text-slate-400 transition group-open:rotate-180" />
+              </summary>
+              <div className="border-t border-slate-100 p-4">
+                <p className="mb-4 text-xs text-slate-500">{t.optionalHint}</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label={t.companyName}
+                    hint={t.companyNameHint}
+                    value={companyName}
+                    onChange={setCompanyName}
+                  />
+                  <Field
+                    label={t.city}
+                    hint={t.cityHint}
+                    value={city}
+                    onChange={setCity}
+                  />
+                  <Field
+                    label={t.pinCode}
+                    hint={t.pinCodeHint}
+                    value={pinCode}
+                    onChange={setPinCode}
+                    maxLength={16}
+                    inputMode="text"
+                  />
+                  <Field
+                    label={t.addressLine1}
+                    hint={t.addressLine1Hint}
+                    value={addressLine1}
+                    onChange={setAddressLine1}
+                  />
+                  <Field
+                    label={t.landmark}
+                    hint={t.landmarkHint}
+                    value={landmark}
+                    onChange={setLandmark}
+                  />
+                  <Field
+                    label={t.gstin}
+                    hint={t.gstinHint}
+                    value={gstin}
+                    onChange={setGstin}
+                  />
+                  <Field
+                    label={t.iec}
+                    hint={t.iecHint}
+                    value={iec}
+                    onChange={setIec}
+                  />
+                </div>
+              </div>
+            </details>
           </section>
 
           {/* Order Items */}
@@ -442,33 +459,13 @@ export default function CheckoutPage({
           <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold">{t.payment}</h2>
             <div className="mt-3">
-              <select
-                className="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-[#005466] focus:ring-4 focus:ring-cyan-950/5"
-                value={selectedProvider}
-                onChange={(e) =>
-                  setSelectedProvider((e.target.value || "") as PaymentProvider)
-                }
-                required
-              >
-                <option value="" disabled>
-                  {t.selectPayment}
-                </option>
-                {enabledPaymentMethods.map((m) => (
-                  <option key={m.id} value={m.provider}>
-                    {m.name} (USD)
-                  </option>
-                ))}
-              </select>
-              {selectedProvider && (
-                <p className="mt-2 text-xs text-slate-500">
-                  Min:{" "}
-                  {formatUsd(
-                    enabledPaymentMethods.find(
-                      (m) => m.provider === selectedProvider,
-                    )?.minAmountUsd ?? 0,
-                  )}
-                </p>
-              )}
+              <PaymentMethodPicker
+                locale={locale}
+                methods={enabledPaymentMethods}
+                value={activeProvider}
+                onChange={setSelectedProvider}
+              />
+              <p className="mt-3 text-xs leading-5 text-slate-500">{t.paymentNote}</p>
             </div>
           </div>
 

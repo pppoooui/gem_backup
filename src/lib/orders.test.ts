@@ -98,6 +98,30 @@ describe("checkout orders", () => {
     ).toThrow("Postal code");
   });
 
+  it("accepts orders without company or shipping details", () => {
+    resetOrderStoreForTests();
+
+    const result = createCheckoutOrder(
+      {
+        ...checkoutInput,
+        customer: {
+          contactName: "Aarav Mehta",
+          whatsapp: "+91 98765 43210",
+          email: "aarav@example.com",
+          country: "India",
+        } as CheckoutOrderInput["customer"],
+      },
+      { tokenBytes: () => "short-form-token" },
+    );
+
+    expect(result.order.customer).toMatchObject({
+      companyName: "",
+      city: "",
+      pinCode: "",
+      addressLine1: "",
+    });
+  });
+
   it("accepts international postal codes outside India", () => {
     resetOrderStoreForTests();
 

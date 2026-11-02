@@ -53,9 +53,9 @@ function buildWhatsAppText(order: CheckoutOrder): string {
   return [
     `🔔 *New Order*`,
     `Order: *${order.orderNo}*`,
-    `From: ${order.customer.companyName} (${order.customer.contactName})`,
+    `From: ${order.customer.companyName || "-"} (${order.customer.contactName})`,
     `WhatsApp: ${order.customer.whatsapp}`,
-    `Country: ${order.customer.country}, ${order.customer.city}`,
+    `Country: ${[order.customer.country, order.customer.city].filter(Boolean).join(", ")}`,
     ``,
     `*Items:*`,
     items,

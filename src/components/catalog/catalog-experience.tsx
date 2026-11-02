@@ -45,6 +45,10 @@ import {
   priceTiersForGrade,
   unitPriceForQuantity,
 } from "@/lib/product-pricing";
+import {
+  PaymentMethodPicker,
+  preferredPaymentProvider,
+} from "@/components/payments/payment-method-picker";
 import styles from "./catalog-experience.module.css";
 
 const copy = {
@@ -87,7 +91,10 @@ const copy = {
     note: "Note",
     submitOrder: "Place Order",
     submitting: "Submitting...",
-    manualOptions: "Manual Payment Options",
+    manualOptions: "Payment method",
+    acceptedPayments: "Accepted payments",
+    optionalDetails: "Company & shipping address (optional)",
+    optionalHint: "Skip this if you prefer to confirm it with sales on WhatsApp.",
     invoiceNote: "Shipping & taxes calculated in final invoice.",
     secure: "Secure & Confidential",
     response: "Sales will confirm the final amount and publish a secure Pay now button on your order page.",
@@ -131,7 +138,10 @@ const copy = {
     note: "备注",
     submitOrder: "提交订单",
     submitting: "提交中...",
-    manualOptions: "人工确认收款方式",
+    manualOptions: "付款方式",
+    acceptedPayments: "支持的付款方式",
+    optionalDetails: "公司与收货地址（可选）",
+    optionalHint: "也可以稍后在 WhatsApp 上和客服确认。",
     invoiceNote: "运费和税费将在最终 PI 中确认。",
     secure: "安全保密",
     response: "客服确认最终金额后，订单页会出现安全的“立即支付”按钮。",
@@ -1189,7 +1199,7 @@ function CartPanel({
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [form, setForm] = useState<CheckoutFormState>(defaultCheckoutForm);
   const [selectedPaymentProvider, setSelectedPaymentProvider] =
-    useState<PaymentProvider | "">("xtransfer");
+    useState<PaymentProvider | "">("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1209,9 +1219,7 @@ function CartPanel({
   const activePaymentProvider =
     enabledPaymentMethods.find(
       (method) => method.provider === selectedPaymentProvider,
-    )?.provider ??
-    enabledPaymentMethods[0]?.provider ??
-    "";
+    )?.provider ?? preferredPaymentProvider(enabledPaymentMethods);
 
   function updateForm(field: keyof CheckoutFormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -1267,7 +1275,7 @@ function CartPanel({
   }
 
   return (
-    <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col overflow-y-auto">
+    <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col overflow-y-auto overflow-x-hidden">
       <div className="flex items-center justify-between border-b border-slate-100 p-5">
         <h2 className="text-lg font-semibold">
           {locale === "en" ? "Your Cart" : "购物车"} ({validCartLines.length})
@@ -1297,7 +1305,7 @@ function CartPanel({
           <span>{t.invoiceNote}</span>
         </div>
       </div>
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-5">
         {validCartLines.map((line) => {
           const { product, variant } = lineProduct(line, products);
           if (!product || !variant) return null;
@@ -1392,12 +1400,6 @@ function CartPanel({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <CheckoutInput
-                label={t.companyName}
-                value={form.companyName}
-                onChange={(value) => updateForm("companyName", value)}
-                required
-              />
-              <CheckoutInput
                 label={t.contactName}
                 value={form.contactName}
                 onChange={(value) => updateForm("contactName", value)}
@@ -1407,6 +1409,7 @@ function CartPanel({
                 label={t.whatsappNo}
                 value={form.whatsapp}
                 onChange={(value) => updateForm("whatsapp", value)}
+                inputMode="tel"
                 required
               />
               <CheckoutInput
@@ -1422,59 +1425,63 @@ function CartPanel({
                 onChange={(value) => updateForm("country", value)}
                 required
               />
-              <CheckoutInput
-                label={t.city}
-                value={form.city}
-                onChange={(value) => updateForm("city", value)}
-                required
-              />
-              <CheckoutInput
-                label={t.pinCode}
-                value={form.pinCode}
-                onChange={(value) => updateForm("pinCode", value)}
-                inputMode="text"
-                required
-              />
             </div>
-            <CheckoutInput
-              label={t.address}
-              value={form.addressLine1}
-              onChange={(value) => updateForm("addressLine1", value)}
-              required
-            />
-            <div className="grid grid-cols-1 gap-3">
-              <CheckoutInput
-                label={t.landmark}
-                value={form.landmark}
-                onChange={(value) => updateForm("landmark", value)}
-              />
-              <CheckoutInput
-                label={t.gstin}
-                value={form.gstin}
-                onChange={(value) => updateForm("gstin", value)}
-              />
-              <CheckoutInput
-                label={t.iec}
-                value={form.iec}
-                onChange={(value) => updateForm("iec", value)}
-              />
-            </div>
-            {showPrices ? <label className="block text-xs font-semibold text-slate-600">
-              {t.manualOptions}
-              <select
-                className="mt-1 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-normal outline-none focus:border-[#005466]"
+            <details className="group rounded-md border border-slate-200">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700">
+                {t.optionalDetails}
+                <ChevronDown className="size-4 shrink-0 text-slate-400 transition group-open:rotate-180" />
+              </summary>
+              <div className="space-y-3 border-t border-slate-100 p-3">
+                <p className="text-[11px] text-slate-500">{t.optionalHint}</p>
+                <CheckoutInput
+                  label={t.companyName}
+                  value={form.companyName}
+                  onChange={(value) => updateForm("companyName", value)}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <CheckoutInput
+                    label={t.city}
+                    value={form.city}
+                    onChange={(value) => updateForm("city", value)}
+                  />
+                  <CheckoutInput
+                    label={t.pinCode}
+                    value={form.pinCode}
+                    onChange={(value) => updateForm("pinCode", value)}
+                    inputMode="text"
+                  />
+                </div>
+                <CheckoutInput
+                  label={t.address}
+                  value={form.addressLine1}
+                  onChange={(value) => updateForm("addressLine1", value)}
+                />
+                <CheckoutInput
+                  label={t.landmark}
+                  value={form.landmark}
+                  onChange={(value) => updateForm("landmark", value)}
+                />
+                <CheckoutInput
+                  label={t.gstin}
+                  value={form.gstin}
+                  onChange={(value) => updateForm("gstin", value)}
+                />
+                <CheckoutInput
+                  label={t.iec}
+                  value={form.iec}
+                  onChange={(value) => updateForm("iec", value)}
+                />
+              </div>
+            </details>
+            {showPrices ? <div>
+              <p className="mb-2 text-xs font-semibold text-slate-600">{t.manualOptions}</p>
+              <PaymentMethodPicker
+                locale={locale}
+                methods={enabledPaymentMethods}
                 value={activePaymentProvider}
-                onChange={(event) =>
-                  setSelectedPaymentProvider(event.target.value as PaymentProvider)
-                }
-              >
-                {enabledPaymentMethods.map((method) => (
-                  <option key={method.id} value={method.provider}>
-                    {method.name}
-                  </option>
-                ))}
-              </select>
-            </label> : null}
+                onChange={setSelectedPaymentProvider}
+              />
+            </div> : null}
             <label className="block text-xs font-semibold text-slate-600">
               {t.note}
               <textarea
@@ -1503,7 +1510,7 @@ function CartPanel({
         <p className="mt-2 text-center text-xs text-slate-500">{t.response}</p>
         {showPrices ? <div className="mt-5 border-t border-slate-100 pt-5">
           <p className="mb-3 text-xs font-semibold text-slate-600">
-            {t.manualOptions}
+            {t.acceptedPayments}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {enabledPaymentMethods.map((method) => (

@@ -145,19 +145,27 @@ type OrderStore = {
   orders: Map<string, CheckoutOrder>;
 };
 
+// Company and shipping details are optional at checkout (sales confirms them on
+// WhatsApp before the final invoice), but when given they must look real.
+function optionalText(min: number, max: number, message: string) {
+  return z
+    .string()
+    .trim()
+    .max(max)
+    .refine((value) => value === "" || value.length >= min, message)
+    .optional()
+    .default("");
+}
+
 const checkoutCustomerSchema = z.object({
-  companyName: z.string().trim().min(2, "Company name is required").max(160),
+  companyName: optionalText(2, 160, "Company name is too short"),
   contactName: z.string().trim().min(2, "Contact name is required").max(120),
   whatsapp: z.string().trim().min(8, "WhatsApp is required").max(40),
   email: z.string().trim().email("Email is invalid").max(254),
   country: z.string().trim().min(2, "Country is required").max(80),
-  city: z.string().trim().min(2, "City is required").max(100),
-  pinCode: z.string().trim().min(3, "Postal code is required").max(20),
-  addressLine1: z
-    .string()
-    .trim()
-    .min(5, "Shipping address is required")
-    .max(300),
+  city: optionalText(2, 100, "City is too short"),
+  pinCode: optionalText(3, 20, "Postal code is too short"),
+  addressLine1: optionalText(5, 300, "Shipping address is too short"),
   landmark: z.string().trim().max(160).optional(),
   gstin: z.string().trim().max(64).optional(),
   iec: z.string().trim().max(64).optional(),
@@ -413,9 +421,9 @@ export async function createPersistedCheckoutOrder(
   const { data: customer, error: customerError } = await supabase
     .from("customers")
     .insert({
-      company_name: input.customer.companyName,
+      company_name: input.customer.companyName || null,
       contact_name: input.customer.contactName,
-      name: input.customer.companyName,
+      name: input.customer.companyName || input.customer.contactName,
       whatsapp: input.customer.whatsapp,
       whatsapp_normalized: input.customer.whatsapp.replace(/\D/g, ""),
       email: input.customer.email,
