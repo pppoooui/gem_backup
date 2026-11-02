@@ -329,6 +329,10 @@ export function OrderLivePanel({
                     ? zh
                       ? `使用连连支付 ${formatUsd(total)}`
                       : `Pay ${formatUsd(total)} with LianLian`
+                    : paymentProvider === "worldfirst"
+                      ? zh
+                        ? `通过 WorldFirst 刷卡支付 ${formatUsd(total)}`
+                        : `Pay ${formatUsd(total)} by card with WorldFirst`
                     : zh
                       ? `立即支付 ${formatUsd(total)}`
                       : `Pay ${formatUsd(total)} now`}
@@ -350,6 +354,13 @@ export function OrderLivePanel({
               </button>
             </div>
           </div>
+          {paymentUrl && paymentProvider === "worldfirst" ? (
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {zh
+                ? "付款页面由 WorldFirst（万里汇）提供：首次付款需登录或免费注册 WorldFirst 账户，支持 Visa、Mastercard、American Express 等银行卡。款项由 WorldFirst 托管，我们发货并提交物流单据后才会放款给工厂。"
+                : "The checkout is hosted by WorldFirst. Sign in or create a free WorldFirst account, then pay by Visa, Mastercard, American Express or other cards. WorldFirst holds the funds and releases them to us only after we ship and submit the delivery documents."}
+            </p>
+          ) : null}
           {notice && <p className="mt-3 text-sm text-[#005466]">{notice}</p>}
         </section>
       ) : null}

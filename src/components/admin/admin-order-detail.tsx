@@ -247,7 +247,9 @@ export function AdminOrderDetail({
             <span className="block text-xs leading-5 text-slate-500">
               {provider === "lianlian"
                 ? "先在连连支付商户后台按最终美元金额生成收款链接，再粘贴并保存。客户订单页会直接显示“使用连连支付”按钮。"
-                : "填写后保存报价，客户订单页会出现“立即支付”按钮。金额请与下方最终金额保持一致。"}
+                : provider === "worldfirst"
+                  ? "在万里汇后台“发起订单”（WorldTrade），金额与下方最终金额完全一致、币种 USD、交货方式不要选 EXW，复制订单付款链接粘贴到这里并保存。客户订单页会显示“通过 WorldFirst 刷卡支付”按钮。万里汇显示已付款后，请把订单改为“已付款”；发货后记得在万里汇上传物流单据才会放款。"
+                  : "填写后保存报价，客户订单页会出现“立即支付”按钮。金额请与下方最终金额保持一致。"}
             </span>
             {paymentUrl.trim() ? (
               <a

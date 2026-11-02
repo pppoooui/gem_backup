@@ -120,7 +120,7 @@ export default async function CustomPaymentPage({
           <div className="mt-5">
             {link.paymentUrl ? (
               <p className="mb-3 rounded-md bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
-                {zh ? "连连支付安全收款链接已就绪" : "Secure LianLian payment link ready"}
+                {zh ? "安全付款链接已就绪" : "Secure payment link ready"}
               </p>
             ) : null}
             <CustomPaymentActions

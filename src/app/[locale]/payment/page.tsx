@@ -31,11 +31,11 @@ const methods = [
   },
   {
     name: "WorldFirst",
-    tagline: "Multi-currency account for global traders",
+    tagline: "Pay by card through a secure WorldFirst order link",
     details:
-      "Hold and convert 40+ currencies. Send payments to suppliers at wholesale FX rates. Ideal for bulk commodity payments.",
+      "After we confirm your quote, we send a WorldFirst (WorldTrade) order link for the exact USD amount. Sign in or create a free WorldFirst account and pay by Visa, Mastercard, American Express or other cards. WorldFirst holds the funds and releases them to us only after we ship and submit the delivery documents.",
     currencies: "Invoice currency: USD",
-    timeline: "1–2 business days",
+    timeline: "Card payments confirm instantly",
     highlight: false,
   },
   {
