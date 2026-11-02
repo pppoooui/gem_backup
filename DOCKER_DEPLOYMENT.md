@@ -87,20 +87,38 @@ free -h
 
 ## Update
 
+Every push to `main` runs `.github/workflows/docker-image.yml`, which builds
+the image on GitHub and pushes `ghcr.io/pppoooui/gem_backup:latest` plus a
+`:<short-sha>` tag. The workflow needs these repository variables
+(Settings > Secrets and variables > Actions > Variables):
+`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+Once the workflow is green, on the server:
+
 ```bash
+cd /opt/dfcgem
 git pull
-docker compose --env-file .env.production up -d --build
-docker image prune -f
+sudo docker compose --env-file .env.production pull
+sudo docker compose --env-file .env.production up -d
+sudo docker image prune -f
+```
+
+Do not build on the server (`--build`): it has too little memory and the
+build freezes the whole machine. Do not set `APP_VERSION` in
+`.env.production`; the image carries its own commit as the deployment version.
+
+The package is private, so log the server in once with a GitHub token that has
+`read:packages`:
+
+```bash
+sudo docker login ghcr.io -u pppoooui
 ```
 
 ## Rollback
 
-If a new build fails, keep the previous image tag in a registry and run:
+Run an earlier commit's image by its short-sha tag:
 
 ```bash
-docker compose down
-docker run -d --name dfcgem-web --restart unless-stopped \
-  --env-file .env.production \
-  -p 127.0.0.1:3002:3000 \
-  dfcgem-web:previous
+sudo DFCGEM_IMAGE=ghcr.io/pppoooui/gem_backup:<short-sha> \
+  docker compose --env-file .env.production up -d
 ```
